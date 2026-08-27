@@ -28,7 +28,7 @@ User → Subscription → Course → Access
 | Database | MySQL |
 | Auth | Laravel Breeze/Sanctum (session-based) |
 | Video Hosting | 3rd-party streaming (Mux/Bunny Stream/Vimeo Pro/Cloudflare Stream) — **সরাসরি নিজের সার্ভারে video upload নয়** |
-| Payment | Recurring subscription gateway (Stripe/SSLCommerz recurring, bKash যদি recurring সাপোর্ট করে) |
+| Payment | Recurring subscription gateway (Stripe/SSLCommerz recurring, Mobile Bangking যদি recurring সাপোর্ট করে) |
 | Queue | Laravel Queue (Redis) — notification, subscription renewal check, certificate generation |
 | Mobile | v1: PWA, Phase 3: React Native (separate API layer) |
 
@@ -336,7 +336,7 @@ TutorAssignment (id, tutor_id, course_id)   -- role-based scoping
 ## 9. Open Questions
 
 1. Video hosting provider হিসেবে কোনটা পছন্দ — Bunny Stream (কম খরচ) নাকি Mux/Cloudflare Stream (বেশি feature)?
-2. Recurring payment-এর জন্য bKash/Nagad-এ subscription/tokenized billing সাপোর্ট আছে কিনা যাচাই করা দরকার — না থাকলে Stripe অথবা manual renewal reminder + relink flow ব্যবহার করতে হবে
+2. Recurring payment-এর জন্য Mobile Banking-এ subscription/tokenized billing সাপোর্ট আছে কিনা যাচাই করা দরকার — না থাকলে Stripe অথবা manual renewal reminder + relink flow ব্যবহার করতে হবে
 3. একই Student কি একাধিক Year-এ থাকতে পারবে (যেমন mid-year progression/promotion flow)?
 4. Device/session limit দিয়ে account-sharing prevention v1-এই দরকার, নাকি Phase 2-এ রাখলে চলবে?
 
