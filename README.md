@@ -343,3 +343,73 @@ TutorAssignment (id, tutor_id, course_id)   -- role-based scoping
 ---
 
 *পরবর্তী ধাপ: এই PRD approve হলে Subscription + Access Control module-এর detailed database schema ও Eloquent relationship সবার আগে বানানো হবে, যেহেতু এটাই পুরো platform-এর সবচেয়ে critical business logic।*
+
+---
+
+## 10. Setup & Development (Scaffold Status)
+
+> **Status:** Laravel 12 + Inertia + React scaffold সম্পন্ন; Subscription + Access Control core (migrations, Eloquent, services, seeders, parent/admin/plans pages) বানানো হয়েছে। Payment gateway রিয়েল integration এখনো বাকি (v1-এ simulated charge)।
+
+### Requirements
+
+```bash
+PHP >= 8.3, Composer, Node >= 20, PostgreSQL (primary) বা SQLite (dev fallback)
+```
+
+### Local Setup
+
+```bash
+composer install
+npm install
+
+# PostgreSQL setup (প্রোডাকশন/real dev):
+#   CREATE DATABASE lms;  — তারপর .env-এ pgsql credentials বসান
+cp .env.example .env
+php artisan key:generate
+
+# SQLite fallback (কোনো DB server ছাড়াই run করতে):
+#   touch database/database.sqlite
+#   .env-এ DB_CONNECTION=sqlite ও DB_DATABASE=/absolute/path/to/database.sqlite
+
+php artisan migrate --seed
+npm run build        # বা dev-এ: npm run dev
+php artisan serve
+```
+
+### Demo Accounts (seed থেকে)
+
+| Role | Email | Password |
+|---|---|---|
+| Parent | `parent@lms.test` | `password` |
+| Super Admin | `admin@lms.test` | `password` |
+| Tutor | `tutor@lms.test` | `password` |
+
+- **Aarav Khan** (`STU-2026-XXXXX`) — Year 3 Maths **active** + English **trial** → access ALLOW
+- **Zara Khan** — কোনো subscription নেই → access DENY (PRD §5.15 logic-এর live demo)
+
+### Commands
+
+```bash
+php artisan test                 # 31 tests (access control, dunning, certificates, auth)
+php artisan subscriptions:reconcile   # subscription lifecycle check (daily 09:00 scheduled)
+php artisan migrate:fresh --seed      # clean rebuild + demo data
+./vendor/bin/pint                # code style
+```
+
+### Implemented (Phase 1 core)
+
+- Roles/permissions (Super Admin, Tutor, Content Manager, Parent, Student) + Gates
+- Curriculum tree: ClassYear → Subject → Course → Module → Lesson (+ Worksheet, Quiz/Question)
+- **Subscription core**: plans (monthly/annual), bundle pivot, coupons, subscription state machine (`pending/trial/active/past_due/paused/cancelled/expired/blocked`), payments + invoice no, auto student code `STU-YYYY-XXXXX`
+- **Access control service** — `User → Subscription → Course → Access`, free-preview lessons, expiry revokes access (historical data preserved)
+- **Dunning flow** — failed renewal → `past_due` (access blocked) → retry → recovered → `active`; unresolved → grace → cancelled
+- Progress tracking (watch %, resume position, auto-complete at 90%) + auto certificate on 100%
+- Quiz auto-marking (MCQ/TF), assignments/submissions, weighted gradebook, academic sessions/enrollments (multi-year support)
+- Parent dashboard (multi-child), Plans page, Purchase page, Admin overview
+
+### Next Steps (per PRD)
+
+1. Stripe/SSLCommerz tokenized recurring payment + webhook → replace `markPaid('v1-simulated-tx')`
+2. Video streaming provider integration (Mux/Bunny) with signed URLs
+3. PWA manifest + push notifications, localized UI (EN/BN toggle)
+4. Certificates PDF render + QR verification, coupon admin CRUD
