@@ -25,6 +25,15 @@ export default function Register() {
         <GuestLayout>
             <Head title="Register" />
 
+            <div className="mb-6 text-center">
+                <h2 className="text-2xl font-bold text-slate-900">
+                    Create your account
+                </h2>
+                <p className="mt-1 text-sm text-slate-500">
+                    Set up your parent account to get started.
+                </p>
+            </div>
+
             <form onSubmit={submit}>
                 <div>
                     <InputLabel htmlFor="name" value="Name" />
