@@ -31,5 +31,9 @@ class AppServiceProvider extends ServiceProvider
             return $user->hasRoleOrPermission(Role::SUPER_ADMIN, 'manage students')
                 || $user->hasRole(Role::PARENT);
         });
+
+        foreach (['manage staff', 'manage plans', 'manage content', 'view reports', 'view analytics', 'view audit logs'] as $permission) {
+            Gate::define($permission, fn ($user) => $user->hasRoleOrPermission(Role::SUPER_ADMIN, $permission));
+        }
     }
 }

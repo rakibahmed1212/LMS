@@ -1,6 +1,8 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Badge from '@/Components/Badge';
-import { Head, Link } from '@inertiajs/react';
+import InputError from '@/Components/InputError';
+import TextInput from '@/Components/TextInput';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 
 function SubscriptionRow({ sub }) {
     return (
@@ -31,7 +33,105 @@ function SubscriptionRow({ sub }) {
     );
 }
 
-export default function Dashboard({ children, hasSubscriptionPlans }) {
+function AddStudentForm({ classYears }) {
+    const { data, setData, post, processing, errors, reset } = useForm({
+        name: '',
+        dob: '',
+        school: '',
+        gender: '',
+        class_year_id: classYears[0]?.id ? String(classYears[0].id) : '',
+    });
+
+    const submit = (e) => {
+        e.preventDefault();
+        post(route('parent.students.store'), {
+            preserveScroll: true,
+            onSuccess: () => reset('name', 'dob', 'school', 'gender'),
+        });
+    };
+
+    return (
+        <form onSubmit={submit} className="card p-5 sm:p-6">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-end">
+                <div className="grid flex-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <div>
+                        <label className="label" htmlFor="name">
+                            Student name
+                        </label>
+                        <TextInput
+                            id="name"
+                            value={data.name}
+                            onChange={(e) => setData('name', e.target.value)}
+                            className="mt-1 block w-full"
+                            placeholder="Full name"
+                        />
+                        <InputError message={errors.name} className="mt-2" />
+                    </div>
+                    <div>
+                        <label className="label" htmlFor="class_year_id">
+                            Class year
+                        </label>
+                        <select
+                            id="class_year_id"
+                            value={data.class_year_id}
+                            onChange={(e) =>
+                                setData('class_year_id', e.target.value)
+                            }
+                            className="input mt-1"
+                        >
+                            {classYears.map((year) => (
+                                <option key={year.id} value={year.id}>
+                                    {year.name}
+                                </option>
+                            ))}
+                        </select>
+                        <InputError
+                            message={errors.class_year_id}
+                            className="mt-2"
+                        />
+                    </div>
+                    <div>
+                        <label className="label" htmlFor="school">
+                            School
+                        </label>
+                        <TextInput
+                            id="school"
+                            value={data.school}
+                            onChange={(e) => setData('school', e.target.value)}
+                            className="mt-1 block w-full"
+                            placeholder="Optional"
+                        />
+                        <InputError message={errors.school} className="mt-2" />
+                    </div>
+                    <div>
+                        <label className="label" htmlFor="dob">
+                            Date of birth
+                        </label>
+                        <TextInput
+                            id="dob"
+                            type="date"
+                            value={data.dob}
+                            onChange={(e) => setData('dob', e.target.value)}
+                            className="mt-1 block w-full"
+                        />
+                        <InputError message={errors.dob} className="mt-2" />
+                    </div>
+                </div>
+                <button
+                    type="submit"
+                    disabled={processing || !data.name || !data.class_year_id}
+                    className="btn-primary shrink-0"
+                >
+                    {processing ? 'Adding...' : 'Add student'}
+                </button>
+            </div>
+        </form>
+    );
+}
+
+export default function Dashboard({ children, hasSubscriptionPlans, classYears }) {
+    const { flash } = usePage().props;
+
     return (
         <AuthenticatedLayout
             header={
@@ -48,7 +148,15 @@ export default function Dashboard({ children, hasSubscriptionPlans }) {
         >
             <Head title="Parent Dashboard" />
             <div className="py-8">
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div className="mx-auto max-w-7xl space-y-6 px-4 sm:px-6 lg:px-8">
+                    {flash.success && (
+                        <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
+                            {flash.success}
+                        </div>
+                    )}
+
+                    <AddStudentForm classYears={classYears} />
+
                     {children.length === 0 ? (
                         <div className="card p-10 text-center">
                             <h3 className="text-lg font-semibold">

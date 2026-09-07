@@ -1,7 +1,10 @@
 <?php
 
 use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\AdminUserController;
+use App\Http\Controllers\CertificateVerificationController;
 use App\Http\Controllers\ParentDashboardController;
+use App\Http\Controllers\ParentStudentController;
 use App\Http\Controllers\PlanController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SubscribeController;
@@ -17,6 +20,9 @@ Route::get('/', function () {
         'phpVersion' => PHP_VERSION,
     ]);
 });
+
+Route::get('/certificates/verify/{code}', [CertificateVerificationController::class, 'show'])
+    ->name('certificates.verify');
 
 Route::get('/dashboard', function () {
     $user = auth()->user();
@@ -35,6 +41,9 @@ Route::get('/dashboard', function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/parent', [ParentDashboardController::class, 'index'])
         ->name('parent.dashboard');
+    Route::post('/parent/students', [ParentStudentController::class, 'store'])
+        ->middleware('can:manage students')
+        ->name('parent.students.store');
 
     Route::get('/plans', [PlanController::class, 'index'])->name('plans.index');
 
@@ -46,6 +55,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/admin', [AdminDashboardController::class, 'index'])
         ->middleware('can:manage subscriptions')
         ->name('admin.dashboard');
+    Route::get('/admin/users', [AdminUserController::class, 'index'])
+        ->middleware('can:manage staff')
+        ->name('admin.users.index');
+    Route::patch('/admin/users/{user}', [AdminUserController::class, 'update'])
+        ->middleware('can:manage staff')
+        ->name('admin.users.update');
 });
 
 Route::middleware('auth')->group(function () {

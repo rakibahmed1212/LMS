@@ -122,6 +122,10 @@ class ProgressService
             'issued_at' => $now ?? now(),
         ]);
 
+        $certificate->forceFill([
+            'qr_url' => route('certificates.verify', ['code' => $certificate->cert_code]),
+        ])->save();
+
         ActivityLog::query()->create([
             'student_id' => $student->id,
             'action' => ActivityLog::ACTION_CERTIFICATE_ISSUED,

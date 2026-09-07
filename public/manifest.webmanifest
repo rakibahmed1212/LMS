@@ -1,0 +1,17 @@
+{
+    "name": "Tuition LMS",
+    "short_name": "LMS",
+    "description": "Subscription-based online tuition platform for parents and students.",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "background_color": "#f8fafc",
+    "theme_color": "#4f46e5",
+    "icons": [
+        {
+            "src": "/favicon.ico",
+            "sizes": "48x48",
+            "type": "image/x-icon"
+        }
+    ]
+}

@@ -37,6 +37,11 @@ export default function AuthenticatedLayout({ header, children }) {
             active: route().current('admin.dashboard'),
             label: 'Admin',
         });
+        links.push({
+            href: route('admin.users.index'),
+            active: route().current('admin.users.*'),
+            label: 'Users',
+        });
     }
 
     return (

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ClassYear;
 use App\Models\Student;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
@@ -57,6 +58,11 @@ class ParentDashboardController extends Controller
         return Inertia::render('Parent/Dashboard', [
             'children' => $children,
             'hasSubscriptionPlans' => SubscriptionPlan::query()->where('is_active', true)->exists(),
+            'classYears' => ClassYear::query()
+                ->where('is_active', true)
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get(['id', 'name']),
         ]);
     }
 }
