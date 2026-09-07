@@ -26,6 +26,11 @@ export default function AuthenticatedLayout({ header, children }) {
     }
     if (isAdmin || isStaff || isParent) {
         links.push({
+            href: route('courses.index'),
+            active: route().current('courses.*'),
+            label: 'Courses',
+        });
+        links.push({
             href: route('plans.index'),
             active: route().current('plans.index'),
             label: 'Plans',

@@ -33,6 +33,17 @@ function SubscriptionRow({ sub }) {
     );
 }
 
+function ProgressBar({ value }) {
+    return (
+        <div className="h-2 overflow-hidden rounded-full bg-slate-200">
+            <div
+                className="h-full rounded-full bg-cyan-600"
+                style={{ width: `${Math.min(100, Math.max(0, value))}%` }}
+            />
+        </div>
+    );
+}
+
 function AddStudentForm({ classYears }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         name: '',
@@ -222,7 +233,7 @@ export default function Dashboard({ children, hasSubscriptionPlans, classYears }
                                         </div>
                                     </div>
 
-                                    <div className="grid gap-6 p-5 md:grid-cols-2 sm:p-6">
+                                    <div className="grid gap-6 p-5 lg:grid-cols-[1fr_1fr] sm:p-6">
                                         <div>
                                             <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
                                                 Subscriptions
@@ -245,22 +256,87 @@ export default function Dashboard({ children, hasSubscriptionPlans, classYears }
                                             )}
                                         </div>
 
-                                        <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-5">
-                                            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
-                                                Subjects in use
-                                            </p>
-                                            <p className="text-sm font-medium text-slate-800">
-                                                {child.accessible_subjects.join(
-                                                    ', ',
-                                                ) || '—'}
-                                            </p>
-                                            <p className="mt-3 text-sm leading-relaxed text-slate-500">
-                                                Progress tracking, quizzes and
-                                                grades are linked to each
-                                                subscribed subject. Historical
-                                                data is preserved even after a
-                                                subscription expires.
-                                            </p>
+                                        <div className="space-y-4">
+                                            <div className="rounded-lg border border-slate-200 bg-slate-50/60 p-4">
+                                                <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                                    Course progress
+                                                </p>
+                                                {child.courses.length === 0 ? (
+                                                    <p className="text-sm text-slate-500">
+                                                        No active course access yet.
+                                                    </p>
+                                                ) : (
+                                                    <div className="space-y-3">
+                                                        {child.courses.map((course) => (
+                                                            <div key={course.id}>
+                                                                <div className="mb-1 flex items-center justify-between gap-3 text-sm">
+                                                                    <span className="font-medium text-slate-800">
+                                                                        {course.year} · {course.subject}
+                                                                    </span>
+                                                                    <span className="text-slate-500">
+                                                                        {course.progress}%
+                                                                    </span>
+                                                                </div>
+                                                                <ProgressBar value={course.progress} />
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className="grid gap-4 md:grid-cols-2">
+                                                <div className="rounded-lg border border-slate-200 bg-white p-4">
+                                                    <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                                        Gradebook
+                                                    </p>
+                                                    {child.grades.length === 0 ? (
+                                                        <p className="text-sm text-slate-500">No scores yet.</p>
+                                                    ) : (
+                                                        <ul className="space-y-2">
+                                                            {child.grades.map((grade) => (
+                                                                <li key={`${grade.subject}-${grade.term}`} className="text-sm">
+                                                                    <div className="flex justify-between">
+                                                                        <span className="font-medium text-slate-800">
+                                                                            {grade.subject} · {grade.term}
+                                                                        </span>
+                                                                        <span className="text-slate-600">
+                                                                            {grade.final_score ?? 0}%
+                                                                        </span>
+                                                                    </div>
+                                                                    <p className="text-xs text-slate-400">
+                                                                        Quiz {grade.quiz_avg ?? 0}% · Assignment {grade.assignment_avg ?? 0}%
+                                                                    </p>
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    )}
+                                                </div>
+
+                                                <div className="rounded-lg border border-slate-200 bg-white p-4">
+                                                    <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                                        Certificates
+                                                    </p>
+                                                    {child.certificates.length === 0 ? (
+                                                        <p className="text-sm text-slate-500">No certificates issued yet.</p>
+                                                    ) : (
+                                                        <ul className="space-y-2">
+                                                            {child.certificates.map((certificate) => (
+                                                                <li key={certificate.code}>
+                                                                    <a
+                                                                        href={certificate.verify_url}
+                                                                        className="text-sm font-medium text-cyan-700 hover:text-cyan-600"
+                                                                    >
+                                                                        {certificate.course}
+                                                                    </a>
+                                                                    <p className="font-mono text-xs text-slate-400">
+                                                                        {certificate.code}
+                                                                    </p>
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    )}
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\CertificateVerificationController;
+use App\Http\Controllers\CoursePortalController;
 use App\Http\Controllers\ParentDashboardController;
 use App\Http\Controllers\ParentStudentController;
 use App\Http\Controllers\PlanController;
@@ -46,6 +47,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('parent.students.store');
 
     Route::get('/plans', [PlanController::class, 'index'])->name('plans.index');
+
+    Route::get('/courses', [CoursePortalController::class, 'index'])
+        ->name('courses.index');
+    Route::get('/courses/{course:slug}', [CoursePortalController::class, 'show'])
+        ->name('courses.show');
 
     Route::get('/students/{student}/subscribe', [SubscribeController::class, 'show'])
         ->name('subscriptions.show');
