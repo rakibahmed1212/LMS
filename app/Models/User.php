@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Collection;
 
 class User extends Authenticatable
 {
@@ -39,14 +40,29 @@ class User extends Authenticatable
         return $this->belongsToMany(Role::class);
     }
 
-    public function permissions(): BelongsToMany
+    public function allPermissions(): Collection
     {
-        return $this->roles()->with('permissions');
+        return $this->roles()
+            ->with('permissions')
+            ->get()
+            ->pluck('permissions')
+            ->flatten()
+            ->unique('id')
+            ->values();
     }
 
     public function hasRole(string|array $role): bool
     {
-        return $this->roles->pluck('name')->intersect((array) $role)->isNotEmpty();
+        return $this->roles()
+            ->whereIn('name', (array) $role)
+            ->exists();
+    }
+
+    public function hasPermission(string $permission): bool
+    {
+        return $this->roles()
+            ->whereHas('permissions', fn ($query) => $query->where('name', $permission))
+            ->exists();
     }
 
     public function hasRoleOrPermission(string $role, string $permission): bool
@@ -55,10 +71,7 @@ class User extends Authenticatable
             return true;
         }
 
-        return $this->roles->pluck('permissions')
-            ->flatten()
-            ->pluck('name')
-            ->contains($permission);
+        return $this->hasPermission($permission);
     }
 
     /** Parent account holder: children registered under this user. */

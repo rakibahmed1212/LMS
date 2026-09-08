@@ -40,8 +40,6 @@ class RoleAndPermissionSeeder extends Seeder
             Role::firstOrCreate(['name' => $name, 'label' => $label]);
         }
 
-        $all = Permission::pluck('name')->all();
-
         // Super admin implicitly owns everything; still attach all for clarity in audits.
         Role::where('name', Role::SUPER_ADMIN)->first()->permissions()->sync(Permission::pluck('id'));
 
@@ -54,7 +52,7 @@ class RoleAndPermissionSeeder extends Seeder
         );
 
         Role::where('name', Role::PARENT)->first()->permissions()->sync(
-            Permission::whereIn('name', ['view students', 'view payments'])->pluck('id')
+            Permission::whereIn('name', ['manage students', 'view students', 'view payments'])->pluck('id')
         );
     }
 }

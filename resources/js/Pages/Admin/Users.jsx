@@ -5,6 +5,197 @@ import TextInput from '@/Components/TextInput';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 
+function CreateUserForm({ roles }) {
+    const { data, setData, post, processing, errors, reset } = useForm({
+        name: '',
+        email: '',
+        phone: '',
+        locale: 'en',
+        password: '',
+        password_confirmation: '',
+        role_ids: roles
+            .filter((role) => role.name === 'parent')
+            .map((role) => role.id),
+        is_active: true,
+    });
+
+    const toggleRole = (roleId) => {
+        setData(
+            'role_ids',
+            data.role_ids.includes(roleId)
+                ? data.role_ids.filter((id) => id !== roleId)
+                : [...data.role_ids, roleId],
+        );
+    };
+
+    const submit = (e) => {
+        e.preventDefault();
+        post(route('admin.users.store'), {
+            preserveScroll: true,
+            onSuccess: () =>
+                reset(
+                    'name',
+                    'email',
+                    'phone',
+                    'password',
+                    'password_confirmation',
+                ),
+        });
+    };
+
+    return (
+        <form onSubmit={submit} className="card p-5 sm:p-6">
+            <div className="flex flex-col gap-1 border-b border-slate-100 pb-4">
+                <h3 className="font-semibold text-slate-900">
+                    Create user
+                </h3>
+                <p className="text-sm text-slate-500">
+                    Add admin, tutor, content manager or parent accounts from the backend.
+                </p>
+            </div>
+
+            <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <div>
+                    <label className="label" htmlFor="create_name">
+                        Name
+                    </label>
+                    <TextInput
+                        id="create_name"
+                        value={data.name}
+                        onChange={(e) => setData('name', e.target.value)}
+                        className="mt-1 block w-full"
+                    />
+                    <InputError message={errors.name} className="mt-2" />
+                </div>
+                <div>
+                    <label className="label" htmlFor="create_email">
+                        Email
+                    </label>
+                    <TextInput
+                        id="create_email"
+                        type="email"
+                        value={data.email}
+                        onChange={(e) => setData('email', e.target.value)}
+                        className="mt-1 block w-full"
+                    />
+                    <InputError message={errors.email} className="mt-2" />
+                </div>
+                <div>
+                    <label className="label" htmlFor="create_phone">
+                        Phone
+                    </label>
+                    <TextInput
+                        id="create_phone"
+                        value={data.phone}
+                        onChange={(e) => setData('phone', e.target.value)}
+                        className="mt-1 block w-full"
+                        placeholder="Optional"
+                    />
+                    <InputError message={errors.phone} className="mt-2" />
+                </div>
+                <div>
+                    <label className="label" htmlFor="create_locale">
+                        Language
+                    </label>
+                    <select
+                        id="create_locale"
+                        value={data.locale}
+                        onChange={(e) => setData('locale', e.target.value)}
+                        className="input mt-1"
+                    >
+                        <option value="en">English</option>
+                        <option value="bn">Bengali</option>
+                    </select>
+                    <InputError message={errors.locale} className="mt-2" />
+                </div>
+                <div>
+                    <label className="label" htmlFor="create_password">
+                        Password
+                    </label>
+                    <TextInput
+                        id="create_password"
+                        type="password"
+                        value={data.password}
+                        onChange={(e) => setData('password', e.target.value)}
+                        className="mt-1 block w-full"
+                    />
+                    <InputError message={errors.password} className="mt-2" />
+                </div>
+                <div>
+                    <label
+                        className="label"
+                        htmlFor="create_password_confirmation"
+                    >
+                        Confirm password
+                    </label>
+                    <TextInput
+                        id="create_password_confirmation"
+                        type="password"
+                        value={data.password_confirmation}
+                        onChange={(e) =>
+                            setData('password_confirmation', e.target.value)
+                        }
+                        className="mt-1 block w-full"
+                    />
+                    <InputError
+                        message={errors.password_confirmation}
+                        className="mt-2"
+                    />
+                </div>
+                <div className="md:col-span-2">
+                    <p className="label">Roles</p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                        {roles.map((role) => (
+                            <label
+                                key={role.id}
+                                className={`inline-flex cursor-pointer items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition ${
+                                    data.role_ids.includes(role.id)
+                                        ? 'border-indigo-200 bg-indigo-50 text-indigo-700'
+                                        : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                                }`}
+                            >
+                                <input
+                                    type="checkbox"
+                                    checked={data.role_ids.includes(role.id)}
+                                    onChange={() => toggleRole(role.id)}
+                                    className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                />
+                                {role.label}
+                            </label>
+                        ))}
+                    </div>
+                    <InputError message={errors.role_ids} className="mt-2" />
+                </div>
+            </div>
+
+            <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+                <label className="inline-flex items-center gap-2 text-sm text-slate-600">
+                    <input
+                        type="checkbox"
+                        checked={data.is_active}
+                        onChange={(e) => setData('is_active', e.target.checked)}
+                        className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                    />
+                    Active account
+                </label>
+                <button
+                    type="submit"
+                    disabled={
+                        processing ||
+                        data.role_ids.length === 0 ||
+                        !data.name ||
+                        !data.email ||
+                        !data.password
+                    }
+                    className="btn-primary"
+                >
+                    {processing ? 'Creating...' : 'Create user'}
+                </button>
+            </div>
+        </form>
+    );
+}
+
 function UserRow({ user, roles }) {
     const { data, setData, patch, processing, errors, recentlySuccessful } =
         useForm({
@@ -136,6 +327,8 @@ export default function Users({ users, roles, filters }) {
                             {flash.success}
                         </div>
                     )}
+
+                    <CreateUserForm roles={roles} />
 
                     <div className="card p-5 sm:p-6">
                         <div className="grid gap-4 md:grid-cols-[1fr_240px]">

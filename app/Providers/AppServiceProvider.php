@@ -22,17 +22,30 @@ class AppServiceProvider extends ServiceProvider
             return $user->hasRole(Role::SUPER_ADMIN) ? true : null;
         });
 
-        // Subscription/billing admin gate referenced by routes + middleware.
-        Gate::define('manage subscriptions', function ($user) {
-            return $user->hasRoleOrPermission(Role::SUPER_ADMIN, 'manage subscriptions');
-        });
-
         Gate::define('manage students', function ($user) {
             return $user->hasRoleOrPermission(Role::SUPER_ADMIN, 'manage students')
                 || $user->hasRole(Role::PARENT);
         });
 
-        foreach (['manage staff', 'manage plans', 'manage content', 'view reports', 'view analytics', 'view audit logs'] as $permission) {
+        foreach ([
+            'manage content',
+            'create lesson',
+            'edit lesson',
+            'delete lesson',
+            'create quiz',
+            'create assignment',
+            'upload worksheet',
+            'view students',
+            'manage subscriptions',
+            'view subscriptions',
+            'manage payments',
+            'view payments',
+            'view reports',
+            'view analytics',
+            'manage staff',
+            'manage plans',
+            'view audit logs',
+        ] as $permission) {
             Gate::define($permission, fn ($user) => $user->hasRoleOrPermission(Role::SUPER_ADMIN, $permission));
         }
     }

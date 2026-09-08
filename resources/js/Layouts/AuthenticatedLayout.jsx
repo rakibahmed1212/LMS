@@ -43,6 +43,11 @@ export default function AuthenticatedLayout({ header, children }) {
             label: 'Admin',
         });
         links.push({
+            href: route('admin.students.index'),
+            active: route().current('admin.students.*'),
+            label: 'Students',
+        });
+        links.push({
             href: route('admin.users.index'),
             active: route().current('admin.users.*'),
             label: 'Users',

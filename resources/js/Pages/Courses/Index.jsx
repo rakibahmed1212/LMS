@@ -1,6 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import MarketingLayout from '@/Layouts/MarketingLayout';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import { useEffect, useMemo, useState } from 'react';
 
 function CourseCard({ course, subject }) {
     return (
@@ -44,14 +45,95 @@ function CourseCard({ course, subject }) {
     );
 }
 
-export default function CoursesIndex({ years }) {
+export default function CoursesIndex({ years, allYears, filters }) {
     const auth = usePage().props.auth;
     const Layout = auth.user ? AuthenticatedLayout : MarketingLayout;
+    const [values, setValues] = useState({
+        q: filters.q || '',
+        class_year_id: filters.class_year_id || '',
+    });
+    const resultCount = useMemo(
+        () =>
+            years.reduce(
+                (total, year) =>
+                    total +
+                    year.subjects.reduce(
+                        (subjectTotal, subject) =>
+                            subjectTotal + subject.courses.length,
+                        0,
+                    ),
+                0,
+            ),
+        [years],
+    );
+
+    useEffect(() => {
+        const timeout = setTimeout(() => {
+            router.get(route('courses.index'), values, {
+                preserveState: true,
+                replace: true,
+            });
+        }, 300);
+
+        return () => clearTimeout(timeout);
+    }, [values]);
+
     const content = (
         <>
             <Head title="Courses" />
             <div className="py-8">
                 <div className="mx-auto max-w-7xl space-y-10 px-4 sm:px-6 lg:px-8">
+                    <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                        <div className="grid gap-4 lg:grid-cols-[1fr_220px_auto] lg:items-end">
+                            <div>
+                                <label className="label" htmlFor="course_q">
+                                    Search courses
+                                </label>
+                                <input
+                                    id="course_q"
+                                    value={values.q}
+                                    onChange={(e) =>
+                                        setValues({ ...values, q: e.target.value })
+                                    }
+                                    className="input mt-1"
+                                    placeholder="Search topic, lesson, worksheet or subject"
+                                />
+                            </div>
+                            <div>
+                                <label className="label" htmlFor="course_year">
+                                    Year
+                                </label>
+                                <select
+                                    id="course_year"
+                                    value={values.class_year_id}
+                                    onChange={(e) =>
+                                        setValues({
+                                            ...values,
+                                            class_year_id: e.target.value,
+                                        })
+                                    }
+                                    className="input mt-1"
+                                >
+                                    <option value="">All years</option>
+                                    {allYears.map((year) => (
+                                        <option key={year.id} value={year.id}>
+                                            {year.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <p className="rounded-lg bg-slate-50 px-3 py-2 text-sm font-medium text-slate-600">
+                                {resultCount} course{resultCount === 1 ? '' : 's'}
+                            </p>
+                        </div>
+                    </div>
+
+                    {resultCount === 0 && (
+                        <div className="rounded-lg border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-slate-500">
+                            No courses match this search.
+                        </div>
+                    )}
+
                     {years.map((year) => (
                         <section key={year.id}>
                             <div className="mb-4 flex items-center gap-3">

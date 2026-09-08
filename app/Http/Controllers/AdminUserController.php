@@ -6,6 +6,7 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules;
 use Inertia\Inertia;
 
 class AdminUserController extends Controller
@@ -85,5 +86,41 @@ class AdminUserController extends Controller
         $user->forceFill(['is_active' => $validated['is_active']])->save();
 
         return back()->with('success', $user->name.' has been updated.');
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)],
+            'phone' => ['nullable', 'string', 'max:30'],
+            'locale' => ['required', 'string', Rule::in(['en', 'bn'])],
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'role_ids' => ['required', 'array', 'min:1'],
+            'role_ids.*' => ['integer', Rule::exists('roles', 'id')],
+            'is_active' => ['required', 'boolean'],
+        ]);
+
+        $roles = Role::query()
+            ->whereIn('id', $validated['role_ids'])
+            ->get();
+
+        abort_if($roles->isEmpty(), 422, 'At least one role is required.');
+
+        $user = User::query()->create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'phone' => $validated['phone'] ?? null,
+            'locale' => $validated['locale'],
+            'password' => $validated['password'],
+            'is_active' => $validated['is_active'],
+            'email_verified_at' => now(),
+        ]);
+
+        $user->roles()->sync($roles->pluck('id'));
+
+        return redirect()
+            ->route('admin.users.index')
+            ->with('success', $user->name.' has been created.');
     }
 }

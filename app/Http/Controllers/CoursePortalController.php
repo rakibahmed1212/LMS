@@ -16,12 +16,34 @@ class CoursePortalController extends Controller
 {
     public function index(Request $request)
     {
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'class_year_id' => ['nullable', 'integer', 'exists:class_years,id'],
+        ]);
+
         $years = ClassYear::query()
             ->where('is_active', true)
+            ->when($filters['class_year_id'] ?? null, fn ($query, $yearId) => $query->whereKey($yearId))
             ->with(['subjects' => fn ($query) => $query
                 ->where('is_active', true)
                 ->with(['courses' => fn ($query) => $query
                     ->where('is_published', true)
+                    ->when($filters['q'] ?? null, function ($query, string $term) {
+                        $like = '%'.strtolower($term).'%';
+
+                        $query->where(function ($query) use ($like) {
+                            $query->whereRaw('LOWER(courses.title) LIKE ?', [$like])
+                                ->orWhereRaw('LOWER(courses.description) LIKE ?', [$like])
+                                ->orWhereHas('subject', fn ($query) => $query->whereRaw('LOWER(subjects.name) LIKE ?', [$like]))
+                                ->orWhereHas('modules', function ($query) use ($like) {
+                                    $query->whereRaw('LOWER(modules.title) LIKE ?', [$like])
+                                        ->orWhereHas('lessons', fn ($query) => $query
+                                            ->whereRaw('LOWER(lessons.title) LIKE ?', [$like])
+                                            ->orWhereRaw('LOWER(lessons.notes) LIKE ?', [$like])
+                                            ->orWhereHas('worksheets', fn ($query) => $query->whereRaw('LOWER(worksheets.title) LIKE ?', [$like])));
+                                });
+                        });
+                    })
                     ->withCount(['lessons'])
                     ->orderBy('title')])
                 ->orderBy('sort_order')])
@@ -47,6 +69,15 @@ class CoursePortalController extends Controller
 
         return Inertia::render('Courses/Index', [
             'years' => $years,
+            'allYears' => ClassYear::query()
+                ->where('is_active', true)
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get(['id', 'name']),
+            'filters' => [
+                'q' => $filters['q'] ?? '',
+                'class_year_id' => $filters['class_year_id'] ?? '',
+            ],
         ]);
     }
 

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\AdminStudentController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\CertificateVerificationController;
 use App\Http\Controllers\CoursePortalController;
@@ -79,9 +80,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/admin/users', [AdminUserController::class, 'index'])
         ->middleware('can:manage staff')
         ->name('admin.users.index');
+    Route::post('/admin/users', [AdminUserController::class, 'store'])
+        ->middleware('can:manage staff')
+        ->name('admin.users.store');
     Route::patch('/admin/users/{user}', [AdminUserController::class, 'update'])
         ->middleware('can:manage staff')
         ->name('admin.users.update');
+    Route::get('/admin/students', [AdminStudentController::class, 'index'])
+        ->middleware('can:manage subscriptions')
+        ->name('admin.students.index');
 });
 
 Route::middleware('auth')->group(function () {
