@@ -93,12 +93,14 @@ class CoursePortalController extends Controller
         $user = $request->user();
 
         $children = collect();
-        $unlockedStudentIds = collect();
+        $subscribedStudents = collect();
         if ($user) {
             /** @var User $user */
-            $children = $user->students()
+            $subscribedStudents = $user->students()
                 ->with('classYears')
-                ->get()
+                ->get();
+
+            $children = $subscribedStudents
                 ->map(function (Student $student) use ($access, $course, $progress) {
                     $hasAccess = $access->canAccessCourse($student, $course);
 
@@ -112,10 +114,6 @@ class CoursePortalController extends Controller
                         'subscribe_url' => route('subscriptions.show', ['student' => $student->id]),
                     ];
                 });
-            $unlockedStudentIds = $children
-                ->where('has_access', true)
-                ->pluck('id')
-                ->values();
         }
 
         $plans = SubscriptionPlan::query()
@@ -144,17 +142,22 @@ class CoursePortalController extends Controller
                 'modules' => $course->modules->map(fn ($module) => [
                     'id' => $module->id,
                     'title' => $module->title,
-                    'lessons' => $module->lessons->map(fn ($lesson) => [
-                        'id' => $lesson->id,
-                        'title' => $lesson->title,
-                        'notes' => $lesson->notes,
-                        'duration_minutes' => (int) ceil($lesson->duration_seconds / 60),
-                        'is_free' => $lesson->is_free,
-                        'open_url' => route('lessons.show', [
-                            'lesson' => $lesson->id,
-                            'student' => $unlockedStudentIds->first(),
-                        ]),
-                    ]),
+                    'lessons' => $module->lessons->map(function ($lesson) use ($access, $subscribedStudents) {
+                        $releasedStudent = $subscribedStudents->first(fn (Student $student) => $access->canAccessLesson($student, $lesson));
+
+                        return [
+                            'id' => $lesson->id,
+                            'title' => $lesson->title,
+                            'notes' => $lesson->notes,
+                            'duration_minutes' => (int) ceil($lesson->duration_seconds / 60),
+                            'is_free' => $lesson->is_free,
+                            'is_released' => $lesson->is_free || $releasedStudent !== null,
+                            'open_url' => route('lessons.show', [
+                                'lesson' => $lesson->id,
+                                'student' => $releasedStudent?->id,
+                            ]),
+                        ];
+                    }),
                 ]),
             ],
             'children' => $children,

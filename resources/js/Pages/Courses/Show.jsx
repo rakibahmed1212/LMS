@@ -104,9 +104,7 @@ export default function CourseShow({ course, children, plans }) {
                                                 </h4>
                                                 <ul className="mt-4 space-y-2">
                                                     {module.lessons.map((lesson) => {
-                                                        const canOpen =
-                                                            lesson.is_free ||
-                                                            unlockedChildren.length > 0;
+                                                        const canOpen = lesson.is_released;
                                                         const rowClass =
                                                             'flex items-center justify-between gap-4 rounded-lg border border-slate-200 p-3 transition';
                                                         const inner = (
@@ -117,7 +115,11 @@ export default function CourseShow({ course, children, plans }) {
                                                                     </p>
                                                                     <p className="text-xs text-slate-500">
                                                                         {lesson.duration_minutes} min
-                                                                        {lesson.is_free ? ' · free preview' : ' · subscribers only'}
+                                                                        {lesson.is_free
+                                                                            ? ' · free preview'
+                                                                            : lesson.is_released
+                                                                              ? ' · released'
+                                                                              : ' · scheduled'}
                                                                     </p>
                                                                 </div>
                                                                 <span

@@ -28,12 +28,14 @@ class LessonPortalController extends Controller
         $user = $request->user();
         $student = null;
         $hasAccess = $lesson->is_free;
+        $hasCourseAccess = false;
 
         if ($user && $request->filled('student')) {
             /** @var User $user */
             $student = $user->students()->whereKey($request->integer('student'))->first();
 
             if ($student) {
+                $hasCourseAccess = $access->canAccessCourse($student, $lesson->module->course);
                 $hasAccess = $access->canAccessLesson($student, $lesson);
             }
         }
@@ -89,6 +91,9 @@ class LessonPortalController extends Controller
                 ->where('lesson_id', $lesson->id)
                 ->first(['watch_percent', 'watched_seconds', 'last_position_seconds', 'completed']) : null,
             'hasAccess' => $hasAccess,
+            'lockReason' => $hasAccess
+                ? null
+                : ($hasCourseAccess ? 'scheduled' : 'subscription_required'),
             'subscribeUrl' => $student ? route('subscriptions.show', ['student' => $student->id]) : null,
         ]);
     }

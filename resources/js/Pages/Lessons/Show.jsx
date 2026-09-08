@@ -146,7 +146,9 @@ function QuestionPanel({ lesson, student, discussions }) {
     );
 }
 
-function VideoShell({ lesson, hasAccess }) {
+function VideoShell({ lesson, hasAccess, lockReason }) {
+    const scheduled = lockReason === 'scheduled';
+
     return (
         <div className="relative flex aspect-video items-center justify-center overflow-hidden bg-slate-950 text-white">
             {lesson.video_thumbnail && (
@@ -178,10 +180,12 @@ function VideoShell({ lesson, hasAccess }) {
                         <span className="text-2xl font-semibold">!</span>
                     </div>
                     <h1 className="mt-4 text-2xl font-semibold text-white">
-                        Subscription required
+                        {scheduled ? 'Scheduled lesson' : 'Subscription required'}
                     </h1>
                     <p className="mt-3 text-sm leading-6 text-slate-300">
-                        This lesson is locked. Subscribe a student to unlock the full course.
+                        {scheduled
+                            ? 'This lesson will unlock when the student reaches this stage of the subscription plan.'
+                            : 'This lesson is locked. Subscribe a student to unlock the course.'}
                     </p>
                 </div>
             )}
@@ -189,7 +193,7 @@ function VideoShell({ lesson, hasAccess }) {
     );
 }
 
-export default function LessonShow({ lesson, student, progress, hasAccess, subscribeUrl }) {
+export default function LessonShow({ lesson, student, progress, hasAccess, lockReason, subscribeUrl }) {
     const { auth, flash } = usePage().props;
     const Layout = auth.user ? AuthenticatedLayout : MarketingLayout;
 
@@ -205,7 +209,11 @@ export default function LessonShow({ lesson, student, progress, hasAccess, subsc
                             </div>
                         )}
                         <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-                            <VideoShell lesson={lesson} hasAccess={hasAccess} />
+                            <VideoShell
+                                lesson={lesson}
+                                hasAccess={hasAccess}
+                                lockReason={lockReason}
+                            />
                             <div className="p-5 sm:p-6">
                                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                     <div className="flex flex-wrap items-center gap-2">
@@ -283,11 +291,17 @@ export default function LessonShow({ lesson, student, progress, hasAccess, subsc
 
                         {!hasAccess && (
                             <section className="rounded-lg border border-cyan-200 bg-cyan-50 p-5">
-                                <h3 className="font-semibold text-cyan-950">Unlock this lesson</h3>
+                                <h3 className="font-semibold text-cyan-950">
+                                    {lockReason === 'scheduled'
+                                        ? 'Unlocks by schedule'
+                                        : 'Unlock this lesson'}
+                                </h3>
                                 <p className="mt-2 text-sm leading-6 text-cyan-900">
-                                    Subscribe per child and subject to keep access active.
+                                    {lockReason === 'scheduled'
+                                        ? 'Paid lessons are paced across the subscription period, so students receive a steady amount of class content.'
+                                        : 'Subscribe per child and subject to keep access active.'}
                                 </p>
-                                {auth.user && subscribeUrl ? (
+                                {lockReason === 'scheduled' ? null : auth.user && subscribeUrl ? (
                                     <Link href={subscribeUrl} className="btn-primary mt-4 w-full">
                                         Subscribe now
                                     </Link>

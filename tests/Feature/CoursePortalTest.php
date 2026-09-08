@@ -104,4 +104,30 @@ class CoursePortalTest extends TestCase
                 ->component('Courses/Show')
                 ->where('children.0.has_access', true));
     }
+
+    public function test_course_detail_keeps_future_paid_lessons_scheduled(): void
+    {
+        $data = $this->courseSetup();
+        $module = $data['course']->modules()->first();
+
+        for ($i = 1; $i <= 5; $i++) {
+            $module->lessons()->create([
+                'title' => 'Paid lesson '.$i,
+                'sort_order' => $i,
+                'duration_seconds' => 300,
+                'is_published' => true,
+                'is_free' => false,
+            ]);
+        }
+
+        $subscription = app(SubscriptionService::class)->subscribe($data['student'], $data['plan']);
+        app(SubscriptionService::class)->markPaid($subscription, 'portal-drip-test');
+
+        $this->actingAs($data['parent'])
+            ->get(route('courses.show', ['course' => $data['course']->slug]))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('course.modules.0.lessons.1.is_released', true)
+                ->where('course.modules.0.lessons.5.is_released', false));
+    }
 }

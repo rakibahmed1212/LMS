@@ -17,6 +17,7 @@ use App\Services\AccessControlService;
 use App\Services\ProgressService;
 use App\Services\SubscriptionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 class AccessControlServiceTest extends TestCase
@@ -69,6 +70,38 @@ class AccessControlServiceTest extends TestCase
         $this->assertFalse($access->canAccessLesson($d['studentB'], $d['lesson']));
         // free preview open to everyone
         $this->assertTrue($access->canAccessLesson($d['studentB'], $d['freeLesson']));
+    }
+
+    public function test_paid_lessons_are_limited_by_subscription_period(): void
+    {
+        Carbon::setTestNow('2026-09-08 10:00:00');
+
+        $d = $this->seedMinimalData();
+        $access = app(AccessControlService::class);
+        $subscription = $d['studentA']->subscriptions()->first();
+        $subscription->update([
+            'started_at' => now(),
+            'expires_at' => now()->addDays(90),
+        ]);
+
+        $paidLessons = collect([$d['lesson']]);
+        for ($i = 2; $i <= 13; $i++) {
+            $paidLessons->push(Lesson::create([
+                'module_id' => $d['lesson']->module_id,
+                'title' => 'Month paced lesson '.$i,
+                'sort_order' => $i,
+                'video_provider' => 'mux',
+                'video_id' => 'v'.$i,
+                'duration_seconds' => 300,
+                'is_published' => true,
+                'is_free' => false,
+            ]));
+        }
+
+        $this->assertTrue($access->canAccessLesson($d['studentA']->refresh(), $paidLessons[11]));
+        $this->assertFalse($access->canAccessLesson($d['studentA']->refresh(), $paidLessons[12]));
+
+        Carbon::setTestNow();
     }
 
     public function test_expired_subscription_revokes_access_but_keeps_data(): void
