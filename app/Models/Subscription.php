@@ -71,6 +71,8 @@ class Subscription extends Model
     public function grantsAccess(): bool
     {
         return in_array($this->status, [self::STATUS_ACTIVE, self::STATUS_TRIAL], true)
+            && $this->started_at !== null
+            && $this->started_at->lte(now())
             && $this->expires_at !== null
             && $this->expires_at->isFuture();
     }

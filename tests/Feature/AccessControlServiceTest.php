@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\AcademicSession;
 use App\Models\ClassYear;
 use App\Models\Course;
 use App\Models\Lesson;
@@ -100,6 +101,51 @@ class AccessControlServiceTest extends TestCase
 
         $this->assertTrue($access->canAccessLesson($d['studentA']->refresh(), $paidLessons[11]));
         $this->assertFalse($access->canAccessLesson($d['studentA']->refresh(), $paidLessons[12]));
+
+        Carbon::setTestNow();
+    }
+
+    public function test_mid_year_subscription_unlocks_that_academic_window_only(): void
+    {
+        Carbon::setTestNow('2026-12-15 10:00:00');
+
+        $d = $this->seedMinimalData();
+        $session = AcademicSession::create([
+            'name' => '2026-27',
+            'starts_at' => '2026-09-01',
+            'ends_at' => '2027-08-31',
+            'is_active' => true,
+        ]);
+        $d['studentA']->enrollments()->create([
+            'class_year_id' => $d['maths']->class_year_id,
+            'academic_session_id' => $session->id,
+        ]);
+
+        $access = app(AccessControlService::class);
+        $subscription = $d['studentA']->subscriptions()->first();
+        $subscription->update([
+            'started_at' => '2026-12-01',
+            'expires_at' => '2027-03-01',
+        ]);
+
+        $paidLessons = collect([$d['lesson']]);
+        for ($i = 2; $i <= 25; $i++) {
+            $paidLessons->push(Lesson::create([
+                'module_id' => $d['lesson']->module_id,
+                'title' => 'Academic window lesson '.$i,
+                'sort_order' => $i,
+                'video_provider' => 'mux',
+                'video_id' => 'academic-window-'.$i,
+                'duration_seconds' => 300,
+                'is_published' => true,
+                'is_free' => false,
+            ]));
+        }
+
+        $this->assertFalse($access->canAccessLesson($d['studentA']->refresh(), $paidLessons[11]));
+        $this->assertTrue($access->canAccessLesson($d['studentA']->refresh(), $paidLessons[12]));
+        $this->assertTrue($access->canAccessLesson($d['studentA']->refresh(), $paidLessons[23]));
+        $this->assertFalse($access->canAccessLesson($d['studentA']->refresh(), $paidLessons[24]));
 
         Carbon::setTestNow();
     }
