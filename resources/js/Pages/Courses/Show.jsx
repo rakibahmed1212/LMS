@@ -14,100 +14,153 @@ function ProgressBar({ value }) {
     );
 }
 
+function CourseStat({ label, value }) {
+    return (
+        <div className="rounded-lg border border-slate-200 bg-white p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                {label}
+            </p>
+            <p className="mt-2 text-xl font-semibold text-slate-950">{value}</p>
+        </div>
+    );
+}
+
 export default function CourseShow({ course, children, plans }) {
     const auth = usePage().props.auth;
     const Layout = auth.user ? AuthenticatedLayout : MarketingLayout;
     const unlockedChildren = children.filter((child) => child.has_access);
+    const lessonCount = course.modules.reduce(
+        (total, module) => total + module.lessons.length,
+        0,
+    );
+    const freePreviewCount = course.modules.reduce(
+        (total, module) =>
+            total + module.lessons.filter((lesson) => lesson.is_free).length,
+        0,
+    );
 
     const content = (
         <>
             <Head title={course.title} />
-            <div className="py-8">
+            <div className="bg-white py-8">
                 <div className="mx-auto grid max-w-7xl gap-6 px-4 sm:px-6 lg:grid-cols-[1fr_360px] lg:px-8">
                     <div className="space-y-6">
                         <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-                            <div className="aspect-[21/9] bg-slate-100">
+                            <div className="relative min-h-[300px] bg-slate-950">
                                 <img
                                     src={course.thumbnail || '/images/tuition-hero.png'}
                                     alt=""
-                                    className="h-full w-full object-cover"
+                                    className="absolute inset-0 h-full w-full object-cover opacity-75"
                                 />
+                                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/55 to-slate-950/10" />
+                                <div className="relative flex min-h-[300px] flex-col justify-end p-5 sm:p-8">
+                                    <div className="flex flex-wrap gap-2">
+                                        <Badge>{unlockedChildren.length > 0 ? 'Subscribed' : 'Subscription required'}</Badge>
+                                        <span className="badge bg-white/90 text-slate-700 ring-1 ring-inset ring-white/80">
+                                            {course.year} · {course.subject}
+                                        </span>
+                                    </div>
+                                    <h1 className="mt-4 max-w-3xl text-3xl font-semibold text-white sm:text-4xl">
+                                        {course.title}
+                                    </h1>
+                                    <p className="mt-4 max-w-3xl text-base leading-7 text-slate-100">
+                                        {course.description}
+                                    </p>
+                                </div>
                             </div>
-                            <div className="p-5 sm:p-6">
-                                <Badge>{unlockedChildren.length > 0 ? 'Subscribed' : 'Subscription required'}</Badge>
-                                <p className="mt-4 leading-7 text-slate-600">
-                                    {course.description}
-                                </p>
+                            <div className="grid gap-3 border-t border-slate-200 bg-slate-50 p-4 sm:grid-cols-3">
+                                <CourseStat label="Modules" value={course.modules.length} />
+                                <CourseStat label="Lessons" value={lessonCount} />
+                                <CourseStat label="Free previews" value={freePreviewCount} />
                             </div>
                         </section>
 
                         <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
                             <div className="border-b border-slate-100 p-5 sm:p-6">
-                                <h3 className="font-semibold text-slate-900">
-                                    Curriculum
-                                </h3>
+                                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                                    <div>
+                                        <h3 className="font-semibold text-slate-900">
+                                            Learning Path
+                                        </h3>
+                                        <p className="mt-1 text-sm text-slate-500">
+                                            Year → subject → topic → lesson structure.
+                                        </p>
+                                    </div>
+                                    <span className="text-sm font-semibold text-slate-500">
+                                        {lessonCount} lessons
+                                    </span>
+                                </div>
                             </div>
                             <div className="divide-y divide-slate-100">
-                                {course.modules.map((module) => (
+                                {course.modules.map((module, moduleIndex) => (
                                     <div key={module.id} className="p-5 sm:p-6">
-                                        <h4 className="font-semibold text-slate-900">
-                                            {module.title}
-                                        </h4>
-                                        <ul className="mt-4 space-y-2">
-                                            {module.lessons.map((lesson) => {
-                                                const canOpen =
-                                                    lesson.is_free ||
-                                                    unlockedChildren.length > 0;
-                                                const rowClass =
-                                                    'flex items-center justify-between gap-4 rounded-lg border border-slate-200 p-3 transition';
-                                                const inner = (
-                                                    <>
-                                                        <div>
-                                                            <p className="text-sm font-medium text-slate-900">
-                                                                {lesson.title}
-                                                            </p>
-                                                            <p className="text-xs text-slate-500">
-                                                                {lesson.duration_minutes} min
-                                                                {lesson.is_free ? ' · free preview' : ' · subscribers only'}
-                                                            </p>
-                                                        </div>
-                                                        <span
-                                                            className={`badge ${
-                                                                canOpen
-                                                                    ? 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200'
-                                                                    : 'bg-slate-100 text-slate-500'
-                                                            }`}
-                                                        >
-                                                            {canOpen ? 'Open' : 'Locked'}
-                                                        </span>
-                                                    </>
-                                                );
+                                        <div className="flex items-start gap-3">
+                                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-cyan-50 text-sm font-semibold text-cyan-700">
+                                                {moduleIndex + 1}
+                                            </span>
+                                            <div className="min-w-0 flex-1">
+                                                <h4 className="font-semibold text-slate-900">
+                                                    {module.title}
+                                                </h4>
+                                                <ul className="mt-4 space-y-2">
+                                                    {module.lessons.map((lesson) => {
+                                                        const canOpen =
+                                                            lesson.is_free ||
+                                                            unlockedChildren.length > 0;
+                                                        const rowClass =
+                                                            'flex items-center justify-between gap-4 rounded-lg border border-slate-200 p-3 transition';
+                                                        const inner = (
+                                                            <>
+                                                                <div className="min-w-0">
+                                                                    <p className="truncate text-sm font-medium text-slate-900">
+                                                                        {lesson.title}
+                                                                    </p>
+                                                                    <p className="text-xs text-slate-500">
+                                                                        {lesson.duration_minutes} min
+                                                                        {lesson.is_free ? ' · free preview' : ' · subscribers only'}
+                                                                    </p>
+                                                                </div>
+                                                                <span
+                                                                    className={`badge ring-1 ring-inset ${
+                                                                        canOpen
+                                                                            ? 'bg-emerald-50 text-emerald-700 ring-emerald-200'
+                                                                            : 'bg-slate-100 text-slate-500 ring-slate-200'
+                                                                    }`}
+                                                                >
+                                                                    {canOpen ? 'Open' : 'Locked'}
+                                                                </span>
+                                                            </>
+                                                        );
 
-                                                return canOpen ? (
-                                                    <Link
-                                                        key={lesson.id}
-                                                        href={lesson.open_url}
-                                                        className={`${rowClass} hover:border-cyan-200 hover:bg-cyan-50/40`}
-                                                    >
-                                                        {inner}
-                                                    </Link>
-                                                ) : (
-                                                    <li
-                                                        key={lesson.id}
-                                                        className={`${rowClass} bg-slate-50`}
-                                                    >
-                                                        {inner}
-                                                    </li>
-                                                );
-                                            })}
-                                        </ul>
+                                                        return (
+                                                            <li key={lesson.id}>
+                                                                {canOpen ? (
+                                                                    <Link
+                                                                        href={lesson.open_url}
+                                                                        className={`${rowClass} hover:border-cyan-200 hover:bg-cyan-50/40`}
+                                                                    >
+                                                                        {inner}
+                                                                    </Link>
+                                                                ) : (
+                                                                    <div
+                                                                        className={`${rowClass} bg-slate-50`}
+                                                                    >
+                                                                        {inner}
+                                                                    </div>
+                                                                )}
+                                                            </li>
+                                                        );
+                                                    })}
+                                                </ul>
+                                            </div>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
                         </section>
                     </div>
 
-                    <aside className="space-y-6">
+                    <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start">
                         <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
                             <h3 className="font-semibold text-slate-900">
                                 Child access

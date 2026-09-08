@@ -46,6 +46,7 @@ class LessonPortalController extends Controller
                 'duration_minutes' => (int) ceil($lesson->duration_seconds / 60),
                 'video_provider' => $lesson->video_provider,
                 'video_id' => $lesson->video_id,
+                'video_thumbnail' => $lesson->video_thumbnail,
                 'is_free' => $lesson->is_free,
                 'course' => [
                     'title' => $lesson->module->course->title,

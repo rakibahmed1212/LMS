@@ -4,6 +4,34 @@
 
 ---
 
+## Current Implementation Status
+
+এই repository এখন client demo / MVP presentation-এর জন্য prepared. Core subscription LMS flow implemented:
+
+| Area | Status |
+|---|---|
+| Parent account + multiple students | Built |
+| Unique Student ID | Built |
+| Class/Year → Subject → Course → Module → Lesson structure | Built |
+| Course portal + search/navigation | Built |
+| Student-wise subscription access control | Built |
+| Monthly/annual plans, bundle plans, coupon flow | Built as application logic |
+| Parent dashboard with child progress, subscriptions, grades, certificates | Built |
+| Lesson page with lock/unlock, worksheets, quizzes, assignments, Q&A, progress controls | Built |
+| Admin dashboard analytics | Built |
+| Admin user creation + role management | Built |
+| Admin student registry/search/subscription snapshot | Built |
+| Certificate issue + verification URL | Built |
+| PWA manifest/service worker | Built |
+| Recurring payment gateway | External integration needed |
+| Secure video streaming/signed playback | External integration needed |
+| Email/SMS/push notification delivery | External integration needed |
+| Production backups/hosting/HTTPS | Deployment setup needed |
+
+**Demo note:** seed data includes parents, students, courses, lessons, subscriptions, payments, gradebook, live classes and certificates, so the product can be demonstrated as a working LMS flow instead of only static screens.
+
+---
+
 ## 1. Purpose & Scope
 
 এটি একটি **subscription-based online tuition platform** — সাধারণ কোর্স-বিক্রির LMS নয়, বরং পরিবার/অভিভাবক-কেন্দ্রিক একটি মডেল। এখানে একজন Parent একাধিক Student (সন্তান) manage করবে, এবং প্রতিটা Student আলাদাভাবে একাধিক subject subscribe করবে (যেমন: Year 3 Maths + Year 1 English)।

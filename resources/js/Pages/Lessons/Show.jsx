@@ -8,7 +8,12 @@ import { Head, Link, useForm, usePage } from '@inertiajs/react';
 function ResourceList({ title, empty, items, render }) {
     return (
         <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-            <h3 className="font-semibold text-slate-900">{title}</h3>
+            <div className="flex items-center justify-between gap-3">
+                <h3 className="font-semibold text-slate-900">{title}</h3>
+                <span className="rounded bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-500">
+                    {items.length}
+                </span>
+            </div>
             {items.length === 0 ? (
                 <p className="mt-3 text-sm text-slate-500">{empty}</p>
             ) : (
@@ -46,10 +51,18 @@ function ProgressPanel({ lesson, student, progress }) {
 
     return (
         <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-            <h3 className="font-semibold text-slate-900">Learning progress</h3>
-            <p className="mt-1 text-sm text-slate-500">
-                Current progress: {progress?.watch_percent ?? 0}%
-            </p>
+            <div className="flex items-center justify-between gap-3">
+                <h3 className="font-semibold text-slate-900">Learning progress</h3>
+                <span className="text-sm font-semibold text-cyan-700">
+                    {progress?.watch_percent ?? 0}%
+                </span>
+            </div>
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-200">
+                <div
+                    className="h-full rounded-full bg-cyan-600"
+                    style={{ width: `${progress?.watch_percent ?? 0}%` }}
+                />
+            </div>
             <form onSubmit={save} className="mt-4 space-y-3">
                 <div>
                     <label className="label" htmlFor="watched_seconds">
@@ -133,6 +146,49 @@ function QuestionPanel({ lesson, student, discussions }) {
     );
 }
 
+function VideoShell({ lesson, hasAccess }) {
+    return (
+        <div className="relative flex aspect-video items-center justify-center overflow-hidden bg-slate-950 text-white">
+            {lesson.video_thumbnail && (
+                <img
+                    src={lesson.video_thumbnail}
+                    alt=""
+                    className="absolute inset-0 h-full w-full object-cover opacity-35"
+                />
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/70 to-slate-900/30" />
+            {hasAccess ? (
+                <div className="relative w-full max-w-2xl px-6 text-center">
+                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-white text-slate-950 shadow-lg">
+                        <span className="ml-1 block h-0 w-0 border-y-[11px] border-l-[17px] border-y-transparent border-l-current" />
+                    </div>
+                    <p className="mt-5 text-xs font-semibold uppercase tracking-wide text-cyan-200">
+                        {lesson.video_provider || 'streaming'} lesson
+                    </p>
+                    <h1 className="mt-2 text-2xl font-semibold text-white">
+                        {lesson.title}
+                    </h1>
+                    <p className="mt-2 font-mono text-xs text-slate-300">
+                        Secure video ref: {lesson.video_id || 'pending-provider-id'}
+                    </p>
+                </div>
+            ) : (
+                <div className="relative max-w-md px-6 text-center">
+                    <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/20">
+                        <span className="text-2xl font-semibold">!</span>
+                    </div>
+                    <h1 className="mt-4 text-2xl font-semibold text-white">
+                        Subscription required
+                    </h1>
+                    <p className="mt-3 text-sm leading-6 text-slate-300">
+                        This lesson is locked. Subscribe a student to unlock the full course.
+                    </p>
+                </div>
+            )}
+        </div>
+    );
+}
+
 export default function LessonShow({ lesson, student, progress, hasAccess, subscribeUrl }) {
     const { auth, flash } = usePage().props;
     const Layout = auth.user ? AuthenticatedLayout : MarketingLayout;
@@ -149,34 +205,16 @@ export default function LessonShow({ lesson, student, progress, hasAccess, subsc
                             </div>
                         )}
                         <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-                            <div className="flex aspect-video items-center justify-center bg-slate-950 text-white">
-                                {hasAccess ? (
-                                    <div className="px-6 text-center">
-                                        <p className="text-sm uppercase tracking-wide text-cyan-200">
-                                            {lesson.video_provider || 'video'} lesson
-                                        </p>
-                                        <h1 className="mt-2 text-2xl font-semibold text-white">
-                                            {lesson.title}
-                                        </h1>
-                                        <p className="mt-2 font-mono text-sm text-slate-300">
-                                            {lesson.video_id}
-                                        </p>
-                                    </div>
-                                ) : (
-                                    <div className="max-w-md px-6 text-center">
-                                        <h1 className="text-2xl font-semibold text-white">
-                                            Subscription required
-                                        </h1>
-                                        <p className="mt-3 text-sm leading-6 text-slate-300">
-                                            This lesson is locked. Subscribe a student to unlock the full course.
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
+                            <VideoShell lesson={lesson} hasAccess={hasAccess} />
                             <div className="p-5 sm:p-6">
-                                <div className="flex flex-wrap items-center gap-2">
-                                    <Badge>{lesson.is_free ? 'Free preview' : 'Subscribers only'}</Badge>
-                                    {student && <Badge status={hasAccess ? 'active' : 'blocked'}>{student.name}</Badge>}
+                                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <Badge>{lesson.is_free ? 'Free preview' : 'Subscribers only'}</Badge>
+                                        {student && <Badge status={hasAccess ? 'active' : 'blocked'}>{student.name}</Badge>}
+                                    </div>
+                                    <span className="rounded-lg bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-600">
+                                        {lesson.duration_minutes} min
+                                    </span>
                                 </div>
                                 <p className="mt-4 leading-7 text-slate-600">
                                     {lesson.notes}

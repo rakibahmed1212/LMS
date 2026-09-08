@@ -107,6 +107,9 @@ export default function Dashboard({
                         </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
+                        <Link href={route('admin.students.index')} className="btn-secondary">
+                            View students
+                        </Link>
                         <Link href={route('admin.users.index')} className="btn-secondary">
                             Manage users
                         </Link>
