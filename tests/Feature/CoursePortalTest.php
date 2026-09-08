@@ -66,6 +66,17 @@ class CoursePortalTest extends TestCase
                 ->where('years.0.subjects.0.courses.0.slug', 'year-3-maths'));
     }
 
+    public function test_guest_can_browse_course_detail_before_login(): void
+    {
+        $data = $this->courseSetup();
+
+        $this->get(route('courses.show', ['course' => $data['course']->slug]))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Courses/Show')
+                ->where('children', []));
+    }
+
     public function test_course_detail_requires_subscription_for_child_without_access(): void
     {
         $data = $this->courseSetup();

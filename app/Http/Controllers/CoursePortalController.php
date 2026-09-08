@@ -59,25 +59,33 @@ class CoursePortalController extends Controller
             'modules.lessons' => fn ($query) => $query->where('is_published', true),
         ]);
 
-        /** @var User $user */
         $user = $request->user();
 
-        $children = $user->students()
-            ->with('classYears')
-            ->get()
-            ->map(function (Student $student) use ($access, $course, $progress) {
-                $hasAccess = $access->canAccessCourse($student, $course);
+        $children = collect();
+        $unlockedStudentIds = collect();
+        if ($user) {
+            /** @var User $user */
+            $children = $user->students()
+                ->with('classYears')
+                ->get()
+                ->map(function (Student $student) use ($access, $course, $progress) {
+                    $hasAccess = $access->canAccessCourse($student, $course);
 
-                return [
-                    'id' => $student->id,
-                    'name' => $student->name,
-                    'student_code' => $student->student_code,
-                    'years' => $student->classYears->pluck('name'),
-                    'has_access' => $hasAccess,
-                    'course_progress' => $hasAccess ? $progress->courseProgress($student, $course) : 0,
-                    'subscribe_url' => route('subscriptions.show', ['student' => $student->id]),
-                ];
-            });
+                    return [
+                        'id' => $student->id,
+                        'name' => $student->name,
+                        'student_code' => $student->student_code,
+                        'years' => $student->classYears->pluck('name'),
+                        'has_access' => $hasAccess,
+                        'course_progress' => $hasAccess ? $progress->courseProgress($student, $course) : 0,
+                        'subscribe_url' => route('subscriptions.show', ['student' => $student->id]),
+                    ];
+                });
+            $unlockedStudentIds = $children
+                ->where('has_access', true)
+                ->pluck('id')
+                ->values();
+        }
 
         $plans = SubscriptionPlan::query()
             ->where('is_active', true)
@@ -111,6 +119,10 @@ class CoursePortalController extends Controller
                         'notes' => $lesson->notes,
                         'duration_minutes' => (int) ceil($lesson->duration_seconds / 60),
                         'is_free' => $lesson->is_free,
+                        'open_url' => route('lessons.show', [
+                            'lesson' => $lesson->id,
+                            'student' => $unlockedStudentIds->first(),
+                        ]),
                     ]),
                 ]),
             ],

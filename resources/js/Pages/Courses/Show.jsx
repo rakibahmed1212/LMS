@@ -1,6 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Badge from '@/Components/Badge';
-import { Head, Link } from '@inertiajs/react';
+import MarketingLayout from '@/Layouts/MarketingLayout';
+import { Head, Link, usePage } from '@inertiajs/react';
 
 function ProgressBar({ value }) {
     return (
@@ -14,21 +15,12 @@ function ProgressBar({ value }) {
 }
 
 export default function CourseShow({ course, children, plans }) {
+    const auth = usePage().props.auth;
+    const Layout = auth.user ? AuthenticatedLayout : MarketingLayout;
     const unlockedChildren = children.filter((child) => child.has_access);
 
-    return (
-        <AuthenticatedLayout
-            header={
-                <div>
-                    <h2 className="text-xl font-semibold text-slate-900">
-                        {course.title}
-                    </h2>
-                    <p className="mt-0.5 text-sm text-slate-500">
-                        {course.year} · {course.subject}
-                    </p>
-                </div>
-            }
-        >
+    const content = (
+        <>
             <Head title={course.title} />
             <div className="py-8">
                 <div className="mx-auto grid max-w-7xl gap-6 px-4 sm:px-6 lg:grid-cols-[1fr_360px] lg:px-8">
@@ -62,31 +54,52 @@ export default function CourseShow({ course, children, plans }) {
                                             {module.title}
                                         </h4>
                                         <ul className="mt-4 space-y-2">
-                                            {module.lessons.map((lesson) => (
-                                                <li
-                                                    key={lesson.id}
-                                                    className="flex items-center justify-between gap-4 rounded-lg border border-slate-200 p-3"
-                                                >
-                                                    <div>
-                                                        <p className="text-sm font-medium text-slate-900">
-                                                            {lesson.title}
-                                                        </p>
-                                                        <p className="text-xs text-slate-500">
-                                                            {lesson.duration_minutes} min
-                                                            {lesson.is_free ? ' · free preview' : ' · subscribers only'}
-                                                        </p>
-                                                    </div>
-                                                    <span
-                                                        className={`badge ${
-                                                            lesson.is_free || unlockedChildren.length > 0
-                                                                ? 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200'
-                                                                : 'bg-slate-100 text-slate-500'
-                                                        }`}
+                                            {module.lessons.map((lesson) => {
+                                                const canOpen =
+                                                    lesson.is_free ||
+                                                    unlockedChildren.length > 0;
+                                                const rowClass =
+                                                    'flex items-center justify-between gap-4 rounded-lg border border-slate-200 p-3 transition';
+                                                const inner = (
+                                                    <>
+                                                        <div>
+                                                            <p className="text-sm font-medium text-slate-900">
+                                                                {lesson.title}
+                                                            </p>
+                                                            <p className="text-xs text-slate-500">
+                                                                {lesson.duration_minutes} min
+                                                                {lesson.is_free ? ' · free preview' : ' · subscribers only'}
+                                                            </p>
+                                                        </div>
+                                                        <span
+                                                            className={`badge ${
+                                                                canOpen
+                                                                    ? 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200'
+                                                                    : 'bg-slate-100 text-slate-500'
+                                                            }`}
+                                                        >
+                                                            {canOpen ? 'Open' : 'Locked'}
+                                                        </span>
+                                                    </>
+                                                );
+
+                                                return canOpen ? (
+                                                    <Link
+                                                        key={lesson.id}
+                                                        href={lesson.open_url}
+                                                        className={`${rowClass} hover:border-cyan-200 hover:bg-cyan-50/40`}
                                                     >
-                                                        {lesson.is_free || unlockedChildren.length > 0 ? 'Open' : 'Locked'}
-                                                    </span>
-                                                </li>
-                                            ))}
+                                                        {inner}
+                                                    </Link>
+                                                ) : (
+                                                    <li
+                                                        key={lesson.id}
+                                                        className={`${rowClass} bg-slate-50`}
+                                                    >
+                                                        {inner}
+                                                    </li>
+                                                );
+                                            })}
                                         </ul>
                                     </div>
                                 ))}
@@ -99,7 +112,21 @@ export default function CourseShow({ course, children, plans }) {
                             <h3 className="font-semibold text-slate-900">
                                 Child access
                             </h3>
-                            {children.length === 0 ? (
+                            {!auth.user ? (
+                                <div className="mt-4 rounded-lg border border-cyan-200 bg-cyan-50 p-4">
+                                    <p className="text-sm leading-6 text-cyan-900">
+                                        Create a parent account or log in to subscribe a child and unlock this course.
+                                    </p>
+                                    <div className="mt-4 flex flex-wrap gap-2">
+                                        <Link href={route('register')} className="btn-primary">
+                                            Get started
+                                        </Link>
+                                        <Link href={route('login')} className="btn-secondary">
+                                            Log in
+                                        </Link>
+                                    </div>
+                                </div>
+                            ) : children.length === 0 ? (
                                 <div className="mt-4 rounded-lg border border-dashed border-slate-300 p-4 text-sm text-slate-500">
                                     Add a student from your parent dashboard before subscribing.
                                 </div>
@@ -174,6 +201,25 @@ export default function CourseShow({ course, children, plans }) {
                     </aside>
                 </div>
             </div>
-        </AuthenticatedLayout>
+        </>
+    );
+
+    return auth.user ? (
+        <Layout
+            header={
+                <div>
+                    <h2 className="text-xl font-semibold text-slate-900">
+                        {course.title}
+                    </h2>
+                    <p className="mt-0.5 text-sm text-slate-500">
+                        {course.year} · {course.subject}
+                    </p>
+                </div>
+            }
+        >
+            {content}
+        </Layout>
+    ) : (
+        <Layout>{content}</Layout>
     );
 }

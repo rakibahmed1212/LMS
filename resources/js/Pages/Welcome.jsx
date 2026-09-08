@@ -1,5 +1,5 @@
-import Brand from '@/Components/Brand';
 import { Head, Link } from '@inertiajs/react';
+import MarketingLayout from '@/Layouts/MarketingLayout';
 
 const metrics = [
     ['4+', 'subjects seeded'],
@@ -24,33 +24,7 @@ export default function Welcome({ auth, canLogin, canRegister }) {
     return (
         <>
             <Head title="LearnSphere LMS" />
-            <div className="min-h-screen bg-slate-50 text-slate-800">
-                <header className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/90 backdrop-blur">
-                    <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-                        <Brand />
-                        <nav className="flex items-center gap-2">
-                            {auth.user ? (
-                                <Link href={route('dashboard')} className="btn-primary">
-                                    Dashboard
-                                </Link>
-                            ) : (
-                                <>
-                                    {canLogin && (
-                                        <Link href={route('login')} className="btn-ghost hidden sm:inline-flex">
-                                            Log in
-                                        </Link>
-                                    )}
-                                    {canRegister && (
-                                        <Link href={route('register')} className="btn-primary">
-                                            Get started
-                                        </Link>
-                                    )}
-                                </>
-                            )}
-                        </nav>
-                    </div>
-                </header>
-
+            <MarketingLayout>
                 <section className="relative min-h-[calc(100vh-4rem)] overflow-hidden bg-white">
                     <img
                         src="/images/tuition-hero.png"
@@ -131,13 +105,7 @@ export default function Welcome({ auth, canLogin, canRegister }) {
                     </div>
                 </section>
 
-                <footer className="border-t border-slate-200 bg-white">
-                    <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 py-6 text-sm text-slate-500 sm:flex-row sm:px-6 lg:px-8">
-                        <Brand className="opacity-80" />
-                        <p>Subscription-based online tuition platform</p>
-                    </div>
-                </footer>
-            </div>
+            </MarketingLayout>
         </>
     );
 }

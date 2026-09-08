@@ -4,10 +4,12 @@ use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\CertificateVerificationController;
 use App\Http\Controllers\CoursePortalController;
+use App\Http\Controllers\LessonPortalController;
 use App\Http\Controllers\ParentDashboardController;
 use App\Http\Controllers\ParentStudentController;
 use App\Http\Controllers\PlanController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PublicPageController;
 use App\Http\Controllers\SubscribeController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -24,6 +26,17 @@ Route::get('/', function () {
 
 Route::get('/certificates/verify/{code}', [CertificateVerificationController::class, 'show'])
     ->name('certificates.verify');
+Route::get('/about', [PublicPageController::class, 'about'])->name('about');
+Route::get('/contact', [PublicPageController::class, 'contact'])->name('contact');
+Route::get('/faq', [PublicPageController::class, 'faq'])->name('faq');
+Route::get('/privacy', [PublicPageController::class, 'privacy'])->name('privacy');
+Route::get('/terms', [PublicPageController::class, 'terms'])->name('terms');
+Route::get('/courses', [CoursePortalController::class, 'index'])
+    ->name('courses.index');
+Route::get('/courses/{course:slug}', [CoursePortalController::class, 'show'])
+    ->name('courses.show');
+Route::get('/lessons/{lesson}', [LessonPortalController::class, 'show'])
+    ->name('lessons.show');
 
 Route::get('/dashboard', function () {
     $user = auth()->user();
@@ -47,11 +60,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('parent.students.store');
 
     Route::get('/plans', [PlanController::class, 'index'])->name('plans.index');
-
-    Route::get('/courses', [CoursePortalController::class, 'index'])
-        ->name('courses.index');
-    Route::get('/courses/{course:slug}', [CoursePortalController::class, 'show'])
-        ->name('courses.show');
 
     Route::get('/students/{student}/subscribe', [SubscribeController::class, 'show'])
         ->name('subscriptions.show');

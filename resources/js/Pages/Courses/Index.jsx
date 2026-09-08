@@ -1,5 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link } from '@inertiajs/react';
+import MarketingLayout from '@/Layouts/MarketingLayout';
+import { Head, Link, usePage } from '@inertiajs/react';
 
 function CourseCard({ course, subject }) {
     return (
@@ -44,19 +45,10 @@ function CourseCard({ course, subject }) {
 }
 
 export default function CoursesIndex({ years }) {
-    return (
-        <AuthenticatedLayout
-            header={
-                <div>
-                    <h2 className="text-xl font-semibold text-slate-900">
-                        Course Portal
-                    </h2>
-                    <p className="mt-0.5 text-sm text-slate-500">
-                        Browse courses. Subscribe for a child to unlock full access.
-                    </p>
-                </div>
-            }
-        >
+    const auth = usePage().props.auth;
+    const Layout = auth.user ? AuthenticatedLayout : MarketingLayout;
+    const content = (
+        <>
             <Head title="Courses" />
             <div className="py-8">
                 <div className="mx-auto max-w-7xl space-y-10 px-4 sm:px-6 lg:px-8">
@@ -104,6 +96,25 @@ export default function CoursesIndex({ years }) {
                     ))}
                 </div>
             </div>
-        </AuthenticatedLayout>
+        </>
+    );
+
+    return auth.user ? (
+        <Layout
+            header={
+                <div>
+                    <h2 className="text-xl font-semibold text-slate-900">
+                        Course Portal
+                    </h2>
+                    <p className="mt-0.5 text-sm text-slate-500">
+                        Browse courses. Subscribe for a child to unlock full access.
+                    </p>
+                </div>
+            }
+        >
+            {content}
+        </Layout>
+    ) : (
+        <Layout>{content}</Layout>
     );
 }
