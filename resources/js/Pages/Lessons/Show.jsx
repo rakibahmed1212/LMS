@@ -1,7 +1,9 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Badge from '@/Components/Badge';
+import InputError from '@/Components/InputError';
+import TextInput from '@/Components/TextInput';
 import MarketingLayout from '@/Layouts/MarketingLayout';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 
 function ResourceList({ title, empty, items, render }) {
     return (
@@ -16,8 +18,123 @@ function ResourceList({ title, empty, items, render }) {
     );
 }
 
-export default function LessonShow({ lesson, student, hasAccess, subscribeUrl }) {
-    const auth = usePage().props.auth;
+function ProgressPanel({ lesson, student, progress }) {
+    const initialWatched = progress?.watched_seconds ?? 0;
+    const { data, setData, post, processing, errors } = useForm({
+        student_id: student?.id ?? '',
+        watched_seconds: initialWatched,
+        last_position_seconds: progress?.last_position_seconds ?? initialWatched,
+    });
+
+    const save = (e) => {
+        e.preventDefault();
+        post(route('lessons.progress', { lesson: lesson.id }), {
+            preserveScroll: true,
+        });
+    };
+
+    const complete = () => {
+        post(route('lessons.complete', { lesson: lesson.id }), {
+            data: { student_id: student.id },
+            preserveScroll: true,
+        });
+    };
+
+    if (!student) {
+        return null;
+    }
+
+    return (
+        <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            <h3 className="font-semibold text-slate-900">Learning progress</h3>
+            <p className="mt-1 text-sm text-slate-500">
+                Current progress: {progress?.watch_percent ?? 0}%
+            </p>
+            <form onSubmit={save} className="mt-4 space-y-3">
+                <div>
+                    <label className="label" htmlFor="watched_seconds">
+                        Watched seconds
+                    </label>
+                    <TextInput
+                        id="watched_seconds"
+                        type="number"
+                        min="0"
+                        value={data.watched_seconds}
+                        onChange={(e) => {
+                            setData('watched_seconds', e.target.value);
+                            setData('last_position_seconds', e.target.value);
+                        }}
+                        className="mt-1 block w-full"
+                    />
+                    <InputError message={errors.watched_seconds} className="mt-2" />
+                </div>
+                <button type="submit" disabled={processing} className="btn-secondary w-full">
+                    Save progress
+                </button>
+                <button
+                    type="button"
+                    disabled={processing || progress?.completed}
+                    onClick={complete}
+                    className="btn-primary w-full"
+                >
+                    {progress?.completed ? 'Completed' : 'Mark complete'}
+                </button>
+            </form>
+        </section>
+    );
+}
+
+function QuestionPanel({ lesson, student, discussions }) {
+    const { data, setData, post, processing, errors, reset } = useForm({
+        student_id: student?.id ?? '',
+        message: '',
+    });
+
+    const submit = (e) => {
+        e.preventDefault();
+        post(route('lessons.questions.store', { lesson: lesson.id }), {
+            preserveScroll: true,
+            onSuccess: () => reset('message'),
+        });
+    };
+
+    return (
+        <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            <h3 className="font-semibold text-slate-900">Q&A</h3>
+            {student && (
+                <form onSubmit={submit} className="mt-4 space-y-3">
+                    <textarea
+                        value={data.message}
+                        onChange={(e) => setData('message', e.target.value)}
+                        className="input min-h-24"
+                        placeholder="Ask a question for the tutor"
+                    />
+                    <InputError message={errors.message} />
+                    <button type="submit" disabled={processing || !data.message} className="btn-primary w-full">
+                        Post question
+                    </button>
+                </form>
+            )}
+            <div className="mt-5 space-y-3">
+                {discussions.length === 0 ? (
+                    <p className="text-sm text-slate-500">No questions yet.</p>
+                ) : (
+                    discussions.map((item) => (
+                        <div key={item.id} className="rounded-lg border border-slate-200 p-3">
+                            <p className="text-sm text-slate-700">{item.message}</p>
+                            <p className="mt-2 text-xs text-slate-400">
+                                {item.author} · {item.created_at}
+                            </p>
+                        </div>
+                    ))
+                )}
+            </div>
+        </section>
+    );
+}
+
+export default function LessonShow({ lesson, student, progress, hasAccess, subscribeUrl }) {
+    const { auth, flash } = usePage().props;
     const Layout = auth.user ? AuthenticatedLayout : MarketingLayout;
 
     const content = (
@@ -26,6 +143,11 @@ export default function LessonShow({ lesson, student, hasAccess, subscribeUrl })
             <div className="py-8">
                 <div className="mx-auto grid max-w-7xl gap-6 px-4 sm:px-6 lg:grid-cols-[1fr_360px] lg:px-8">
                     <main className="space-y-6">
+                        {flash.success && (
+                            <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
+                                {flash.success}
+                            </div>
+                        )}
                         <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
                             <div className="flex aspect-video items-center justify-center bg-slate-950 text-white">
                                 {hasAccess ? (
@@ -94,6 +216,14 @@ export default function LessonShow({ lesson, student, hasAccess, subscribeUrl })
                                 />
                             </div>
                         )}
+
+                        {hasAccess && (
+                            <QuestionPanel
+                                lesson={lesson}
+                                student={student}
+                                discussions={lesson.discussions}
+                            />
+                        )}
                     </main>
 
                     <aside className="space-y-6">
@@ -132,20 +262,27 @@ export default function LessonShow({ lesson, student, hasAccess, subscribeUrl })
                         )}
 
                         {hasAccess && (
-                            <ResourceList
-                                title="Assignments"
-                                empty="No assignments published."
-                                items={lesson.assignments}
-                                render={(assignment) => (
-                                    <div key={assignment.id} className="rounded-lg border border-slate-200 p-4">
-                                        <p className="text-sm font-medium text-slate-900">{assignment.title}</p>
-                                        <p className="mt-1 text-xs text-slate-500">
-                                            Due {assignment.deadline || 'not set'} · {assignment.max_score} marks
-                                        </p>
-                                        <p className="mt-2 text-sm text-slate-500">{assignment.description}</p>
-                                    </div>
-                                )}
-                            />
+                            <>
+                                <ProgressPanel
+                                    lesson={lesson}
+                                    student={student}
+                                    progress={progress}
+                                />
+                                <ResourceList
+                                    title="Assignments"
+                                    empty="No assignments published."
+                                    items={lesson.assignments}
+                                    render={(assignment) => (
+                                        <div key={assignment.id} className="rounded-lg border border-slate-200 p-4">
+                                            <p className="text-sm font-medium text-slate-900">{assignment.title}</p>
+                                            <p className="mt-1 text-xs text-slate-500">
+                                                Due {assignment.deadline || 'not set'} · {assignment.max_score} marks
+                                            </p>
+                                            <p className="mt-2 text-sm text-slate-500">{assignment.description}</p>
+                                        </div>
+                                    )}
+                                />
+                            </>
                         )}
                     </aside>
                 </div>

@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DiscussionThread;
 use App\Models\Lesson;
+use App\Models\Student;
 use App\Models\User;
 use App\Services\AccessControlService;
+use App\Services\ProgressService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -81,8 +84,74 @@ class LessonPortalController extends Controller
                 'name' => $student->name,
                 'student_code' => $student->student_code,
             ] : null,
+            'progress' => $student ? $student->progress()
+                ->where('lesson_id', $lesson->id)
+                ->first(['watch_percent', 'watched_seconds', 'last_position_seconds', 'completed']) : null,
             'hasAccess' => $hasAccess,
             'subscribeUrl' => $student ? route('subscriptions.show', ['student' => $student->id]) : null,
         ]);
+    }
+
+    public function progress(Request $request, Lesson $lesson, AccessControlService $access, ProgressService $progress)
+    {
+        $validated = $request->validate([
+            'student_id' => ['required', 'exists:students,id'],
+            'watched_seconds' => ['required', 'integer', 'min:0'],
+            'last_position_seconds' => ['required', 'integer', 'min:0'],
+        ]);
+
+        $student = $this->ownedStudent($request, $validated['student_id']);
+        abort_unless($access->canAccessLesson($student, $lesson), 403);
+
+        $progress->recordWatch(
+            $student,
+            $lesson,
+            $validated['watched_seconds'],
+            $validated['last_position_seconds'],
+        );
+
+        return back()->with('success', 'Lesson progress saved.');
+    }
+
+    public function complete(Request $request, Lesson $lesson, AccessControlService $access, ProgressService $progress)
+    {
+        $validated = $request->validate([
+            'student_id' => ['required', 'exists:students,id'],
+        ]);
+
+        $student = $this->ownedStudent($request, $validated['student_id']);
+        abort_unless($access->canAccessLesson($student, $lesson), 403);
+
+        $progress->markCompleted($student, $lesson);
+
+        return back()->with('success', 'Lesson marked as complete.');
+    }
+
+    public function question(Request $request, Lesson $lesson, AccessControlService $access)
+    {
+        $validated = $request->validate([
+            'student_id' => ['required', 'exists:students,id'],
+            'message' => ['required', 'string', 'min:3', 'max:1000'],
+        ]);
+
+        $student = $this->ownedStudent($request, $validated['student_id']);
+        abort_unless($access->canAccessLesson($student, $lesson), 403);
+
+        DiscussionThread::query()->create([
+            'lesson_id' => $lesson->id,
+            'student_id' => $student->id,
+            'user_id' => $request->user()->id,
+            'message' => $validated['message'],
+        ]);
+
+        return back()->with('success', 'Question posted for the tutor.');
+    }
+
+    private function ownedStudent(Request $request, int $studentId): Student
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        return $user->students()->whereKey($studentId)->firstOrFail();
     }
 }

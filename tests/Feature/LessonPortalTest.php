@@ -4,8 +4,10 @@ namespace Tests\Feature;
 
 use App\Models\ClassYear;
 use App\Models\Course;
+use App\Models\DiscussionThread;
 use App\Models\Lesson;
 use App\Models\Module;
+use App\Models\Progress;
 use App\Models\Role;
 use App\Models\Student;
 use App\Models\Subject;
@@ -97,5 +99,46 @@ class LessonPortalTest extends TestCase
             ->assertInertia(fn ($page) => $page
                 ->component('Lessons/Show')
                 ->where('hasAccess', true));
+    }
+
+    public function test_subscribed_student_can_save_lesson_progress(): void
+    {
+        $data = $this->setupLessonData();
+
+        $subscription = app(SubscriptionService::class)->subscribe($data['student'], $data['plan']);
+        app(SubscriptionService::class)->markPaid($subscription, 'lesson-progress-test');
+
+        $this->actingAs($data['parent'])
+            ->post(route('lessons.progress', $data['paidLesson']), [
+                'student_id' => $data['student']->id,
+                'watched_seconds' => 180,
+                'last_position_seconds' => 180,
+            ])
+            ->assertRedirect();
+
+        $this->assertTrue(Progress::where('student_id', $data['student']->id)
+            ->where('lesson_id', $data['paidLesson']->id)
+            ->where('watch_percent', 50)
+            ->exists());
+    }
+
+    public function test_subscribed_student_can_post_lesson_question(): void
+    {
+        $data = $this->setupLessonData();
+
+        $subscription = app(SubscriptionService::class)->subscribe($data['student'], $data['plan']);
+        app(SubscriptionService::class)->markPaid($subscription, 'lesson-question-test');
+
+        $this->actingAs($data['parent'])
+            ->post(route('lessons.questions.store', $data['paidLesson']), [
+                'student_id' => $data['student']->id,
+                'message' => 'Can you explain this again?',
+            ])
+            ->assertRedirect();
+
+        $this->assertTrue(DiscussionThread::where('student_id', $data['student']->id)
+            ->where('lesson_id', $data['paidLesson']->id)
+            ->where('message', 'Can you explain this again?')
+            ->exists());
     }
 }

@@ -66,6 +66,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/students/{student}/subscribe', [SubscribeController::class, 'store'])
         ->name('subscriptions.store');
 
+    Route::post('/lessons/{lesson}/progress', [LessonPortalController::class, 'progress'])
+        ->name('lessons.progress');
+    Route::post('/lessons/{lesson}/complete', [LessonPortalController::class, 'complete'])
+        ->name('lessons.complete');
+    Route::post('/lessons/{lesson}/questions', [LessonPortalController::class, 'question'])
+        ->name('lessons.questions.store');
+
     Route::get('/admin', [AdminDashboardController::class, 'index'])
         ->middleware('can:manage subscriptions')
         ->name('admin.dashboard');
