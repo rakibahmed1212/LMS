@@ -25,6 +25,11 @@ function StudentCard({ student }) {
                         <h3 className="text-base font-semibold text-slate-950">
                             {student.name}
                         </h3>
+                        {student.preferred_name && (
+                            <span className="rounded bg-cyan-50 px-2 py-1 text-xs font-semibold text-cyan-700">
+                                {student.preferred_name}
+                            </span>
+                        )}
                         <span className="rounded bg-slate-100 px-2 py-1 font-mono text-xs text-slate-600">
                             {student.student_code}
                         </span>
@@ -35,6 +40,7 @@ function StudentCard({ student }) {
                         {student.years.length > 0
                             ? ` · ${student.years.join(', ')}`
                             : ''}
+                        {student.dob ? ` · DOB ${student.dob}` : ''}
                     </p>
                     <p className="mt-2 text-sm text-slate-600">
                         Parent: {student.parent.name || 'Unknown'} ·{' '}
@@ -64,7 +70,53 @@ function StudentCard({ student }) {
                 </div>
             </div>
 
-            <div className="p-5">
+            <div className="grid gap-5 p-5 lg:grid-cols-[0.8fr_1.2fr]">
+                <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-4">
+                    <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                        Student profile
+                    </p>
+                    <div className="space-y-3 text-sm text-slate-600">
+                        <p>
+                            <span className="font-medium text-slate-800">
+                                Address:
+                            </span>{' '}
+                            {[
+                                student.address.line1,
+                                student.address.line2,
+                                student.address.city,
+                                student.address.postcode,
+                                student.address.country,
+                            ]
+                                .filter(Boolean)
+                                .join(', ') || 'Not added'}
+                        </p>
+                        <p>
+                            <span className="font-medium text-slate-800">
+                                Emergency:
+                            </span>{' '}
+                            {[
+                                student.emergency_contact.name,
+                                student.emergency_contact.phone,
+                            ]
+                                .filter(Boolean)
+                                .join(' · ') || 'Not added'}
+                        </p>
+                        <p>
+                            <span className="font-medium text-slate-800">
+                                Learning:
+                            </span>{' '}
+                            {student.learning_needs || 'No notes'}
+                        </p>
+                        <p>
+                            <span className="font-medium text-slate-800">
+                                Medical:
+                            </span>{' '}
+                            {student.medical_notes || 'No notes'}
+                        </p>
+                    </div>
+                </div>
+
+                <div>
                 <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
                     Subscriptions and payments
                 </p>
@@ -116,6 +168,7 @@ function StudentCard({ student }) {
                         ))}
                     </div>
                 )}
+                </div>
             </div>
         </article>
     );
@@ -175,7 +228,7 @@ export default function Students({ students, filters, classYears, stats }) {
                                         setValues({ ...values, q: e.target.value })
                                     }
                                     className="input mt-1"
-                                    placeholder="Student ID, name, parent, email, phone or school"
+                                    placeholder="Student ID, name, parent, email, phone, school, address or emergency contact"
                                 />
                             </div>
                             <div>

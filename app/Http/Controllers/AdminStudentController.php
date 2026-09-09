@@ -37,6 +37,14 @@ class AdminStudentController extends Controller
                     $query->where('student_code', 'like', "%{$term}%")
                         ->orWhere('name', 'like', "%{$term}%")
                         ->orWhere('school', 'like', "%{$term}%")
+                        ->orWhere('preferred_name', 'like', "%{$term}%")
+                        ->orWhere('address_line1', 'like', "%{$term}%")
+                        ->orWhere('address_line2', 'like', "%{$term}%")
+                        ->orWhere('city', 'like', "%{$term}%")
+                        ->orWhere('postcode', 'like', "%{$term}%")
+                        ->orWhere('country', 'like', "%{$term}%")
+                        ->orWhere('emergency_contact_name', 'like', "%{$term}%")
+                        ->orWhere('emergency_contact_phone', 'like', "%{$term}%")
                         ->orWhereHas('parent', function (Builder $query) use ($term) {
                             $query->where('name', 'like', "%{$term}%")
                                 ->orWhere('email', 'like', "%{$term}%")
@@ -61,8 +69,24 @@ class AdminStudentController extends Controller
             ->through(fn (Student $student) => [
                 'id' => $student->id,
                 'name' => $student->name,
+                'preferred_name' => $student->preferred_name,
                 'student_code' => $student->student_code,
                 'school' => $student->school,
+                'dob' => $student->dob?->toDateString(),
+                'gender' => $student->gender,
+                'address' => [
+                    'line1' => $student->address_line1,
+                    'line2' => $student->address_line2,
+                    'city' => $student->city,
+                    'postcode' => $student->postcode,
+                    'country' => $student->country,
+                ],
+                'emergency_contact' => [
+                    'name' => $student->emergency_contact_name,
+                    'phone' => $student->emergency_contact_phone,
+                ],
+                'learning_needs' => $student->learning_needs,
+                'medical_notes' => $student->medical_notes,
                 'is_active' => $student->is_active,
                 'parent' => [
                     'name' => $student->parent?->name,

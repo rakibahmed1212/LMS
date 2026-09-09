@@ -46,8 +46,16 @@ class ParentDashboardController extends Controller
                 return [
                     'id' => $student->id,
                     'name' => $student->name,
+                    'preferred_name' => $student->preferred_name,
                     'student_code' => $student->student_code,
                     'school' => $student->school,
+                    'city' => $student->city,
+                    'postcode' => $student->postcode,
+                    'country' => $student->country,
+                    'emergency_contact_name' => $student->emergency_contact_name,
+                    'emergency_contact_phone' => $student->emergency_contact_phone,
+                    'learning_needs' => $student->learning_needs,
+                    'medical_notes' => $student->medical_notes,
                     'years' => $student->classYears->map(fn ($y) => $y->name),
                     'accessible_subjects' => $subjects->pluck('name'),
                     'subscriptions' => $student->subscriptions->map(function ($sub) {

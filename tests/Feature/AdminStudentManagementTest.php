@@ -62,9 +62,18 @@ class AdminStudentManagementTest extends TestCase
         $this->actingAs($parent)
             ->post(route('parent.students.store'), [
                 'name' => 'New Child',
+                'preferred_name' => 'Nia',
                 'dob' => '2018-01-01',
                 'school' => 'Demo Primary',
                 'gender' => 'female',
+                'address_line1' => '25 Learning Road',
+                'city' => 'London',
+                'postcode' => 'E2 7AA',
+                'country' => 'United Kingdom',
+                'emergency_contact_name' => 'Ayesha Khan',
+                'emergency_contact_phone' => '+447700900123',
+                'learning_needs' => 'Needs extra support with reading confidence.',
+                'medical_notes' => 'No allergies.',
                 'class_year_id' => $year->id,
             ])
             ->assertRedirect();
@@ -72,8 +81,35 @@ class AdminStudentManagementTest extends TestCase
         $this->assertDatabaseHas('students', [
             'parent_id' => $parent->id,
             'name' => 'New Child',
+            'preferred_name' => 'Nia',
             'school' => 'Demo Primary',
+            'city' => 'London',
+            'postcode' => 'E2 7AA',
+            'emergency_contact_phone' => '+447700900123',
         ]);
+    }
+
+    public function test_admin_can_search_students_by_address_or_emergency_contact(): void
+    {
+        $this->seed(RoleAndPermissionSeeder::class);
+
+        $admin = User::factory()->create();
+        $admin->roles()->attach(Role::where('name', Role::SUPER_ADMIN)->first());
+        $parent = User::factory()->create();
+        Student::create([
+            'parent_id' => $parent->id,
+            'name' => 'Safeguarded Student',
+            'address_line1' => '55 Oxford Road',
+            'city' => 'London',
+            'emergency_contact_name' => 'Nadia Ahmed',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.students.index', ['q' => 'Oxford']))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('students.data.0.address.line1', '55 Oxford Road')
+                ->where('students.data.0.emergency_contact.name', 'Nadia Ahmed'));
     }
 
     public function test_admin_student_registry_shows_subscription_snapshot(): void

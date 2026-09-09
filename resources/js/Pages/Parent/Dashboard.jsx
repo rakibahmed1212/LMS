@@ -47,9 +47,19 @@ function ProgressBar({ value }) {
 function AddStudentForm({ classYears }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         name: '',
+        preferred_name: '',
         dob: '',
         school: '',
         gender: '',
+        address_line1: '',
+        address_line2: '',
+        city: '',
+        postcode: '',
+        country: 'United Kingdom',
+        emergency_contact_name: '',
+        emergency_contact_phone: '',
+        learning_needs: '',
+        medical_notes: '',
         class_year_id: classYears[0]?.id ? String(classYears[0].id) : '',
     });
 
@@ -57,17 +67,43 @@ function AddStudentForm({ classYears }) {
         e.preventDefault();
         post(route('parent.students.store'), {
             preserveScroll: true,
-            onSuccess: () => reset('name', 'dob', 'school', 'gender'),
+            onSuccess: () =>
+                reset(
+                    'name',
+                    'preferred_name',
+                    'dob',
+                    'school',
+                    'gender',
+                    'address_line1',
+                    'address_line2',
+                    'city',
+                    'postcode',
+                    'emergency_contact_name',
+                    'emergency_contact_phone',
+                    'learning_needs',
+                    'medical_notes',
+                ),
         });
     };
 
     return (
         <form onSubmit={submit} className="card p-5 sm:p-6">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-end">
-                <div className="grid flex-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="border-b border-slate-100 pb-4">
+                <h3 className="font-semibold text-slate-900">Add student</h3>
+                <p className="mt-1 text-sm text-slate-500">
+                    Capture academic, contact and safeguarding details in one profile.
+                </p>
+            </div>
+
+            <div className="mt-5 space-y-6">
+                <div>
+                    <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                        Student details
+                    </p>
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     <div>
                         <label className="label" htmlFor="name">
-                            Student name
+                            Full name
                         </label>
                         <TextInput
                             id="name"
@@ -77,6 +113,24 @@ function AddStudentForm({ classYears }) {
                             placeholder="Full name"
                         />
                         <InputError message={errors.name} className="mt-2" />
+                    </div>
+                    <div>
+                        <label className="label" htmlFor="preferred_name">
+                            Preferred name
+                        </label>
+                        <TextInput
+                            id="preferred_name"
+                            value={data.preferred_name}
+                            onChange={(e) =>
+                                setData('preferred_name', e.target.value)
+                            }
+                            className="mt-1 block w-full"
+                            placeholder="Optional"
+                        />
+                        <InputError
+                            message={errors.preferred_name}
+                            className="mt-2"
+                        />
                     </div>
                     <div>
                         <label className="label" htmlFor="class_year_id">
@@ -127,14 +181,220 @@ function AddStudentForm({ classYears }) {
                         />
                         <InputError message={errors.dob} className="mt-2" />
                     </div>
+                    <div>
+                        <label className="label" htmlFor="gender">
+                            Gender
+                        </label>
+                        <select
+                            id="gender"
+                            value={data.gender}
+                            onChange={(e) => setData('gender', e.target.value)}
+                            className="input mt-1"
+                        >
+                            <option value="">Not specified</option>
+                            <option value="female">Female</option>
+                            <option value="male">Male</option>
+                            <option value="other">Other</option>
+                            <option value="prefer_not_to_say">
+                                Prefer not to say
+                            </option>
+                        </select>
+                        <InputError message={errors.gender} className="mt-2" />
+                    </div>
+                    </div>
                 </div>
-                <button
-                    type="submit"
-                    disabled={processing || !data.name || !data.class_year_id}
-                    className="btn-primary shrink-0"
-                >
-                    {processing ? 'Adding...' : 'Add student'}
-                </button>
+
+                <div>
+                    <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                        Address
+                    </p>
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        <div className="sm:col-span-2">
+                            <label className="label" htmlFor="address_line1">
+                                Address line 1
+                            </label>
+                            <TextInput
+                                id="address_line1"
+                                value={data.address_line1}
+                                onChange={(e) =>
+                                    setData('address_line1', e.target.value)
+                                }
+                                className="mt-1 block w-full"
+                                placeholder="House, street"
+                            />
+                            <InputError
+                                message={errors.address_line1}
+                                className="mt-2"
+                            />
+                        </div>
+                        <div className="sm:col-span-2">
+                            <label className="label" htmlFor="address_line2">
+                                Address line 2
+                            </label>
+                            <TextInput
+                                id="address_line2"
+                                value={data.address_line2}
+                                onChange={(e) =>
+                                    setData('address_line2', e.target.value)
+                                }
+                                className="mt-1 block w-full"
+                                placeholder="Optional"
+                            />
+                            <InputError
+                                message={errors.address_line2}
+                                className="mt-2"
+                            />
+                        </div>
+                        <div>
+                            <label className="label" htmlFor="city">
+                                City
+                            </label>
+                            <TextInput
+                                id="city"
+                                value={data.city}
+                                onChange={(e) => setData('city', e.target.value)}
+                                className="mt-1 block w-full"
+                            />
+                            <InputError message={errors.city} className="mt-2" />
+                        </div>
+                        <div>
+                            <label className="label" htmlFor="postcode">
+                                Postcode
+                            </label>
+                            <TextInput
+                                id="postcode"
+                                value={data.postcode}
+                                onChange={(e) =>
+                                    setData('postcode', e.target.value)
+                                }
+                                className="mt-1 block w-full"
+                            />
+                            <InputError
+                                message={errors.postcode}
+                                className="mt-2"
+                            />
+                        </div>
+                        <div className="sm:col-span-2">
+                            <label className="label" htmlFor="country">
+                                Country
+                            </label>
+                            <TextInput
+                                id="country"
+                                value={data.country}
+                                onChange={(e) =>
+                                    setData('country', e.target.value)
+                                }
+                                className="mt-1 block w-full"
+                            />
+                            <InputError
+                                message={errors.country}
+                                className="mt-2"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                        Support information
+                    </p>
+                    <div className="grid gap-4 lg:grid-cols-2">
+                        <div>
+                            <label
+                                className="label"
+                                htmlFor="emergency_contact_name"
+                            >
+                                Emergency contact name
+                            </label>
+                            <TextInput
+                                id="emergency_contact_name"
+                                value={data.emergency_contact_name}
+                                onChange={(e) =>
+                                    setData(
+                                        'emergency_contact_name',
+                                        e.target.value,
+                                    )
+                                }
+                                className="mt-1 block w-full"
+                            />
+                            <InputError
+                                message={errors.emergency_contact_name}
+                                className="mt-2"
+                            />
+                        </div>
+                        <div>
+                            <label
+                                className="label"
+                                htmlFor="emergency_contact_phone"
+                            >
+                                Emergency contact phone
+                            </label>
+                            <TextInput
+                                id="emergency_contact_phone"
+                                value={data.emergency_contact_phone}
+                                onChange={(e) =>
+                                    setData(
+                                        'emergency_contact_phone',
+                                        e.target.value,
+                                    )
+                                }
+                                className="mt-1 block w-full"
+                            />
+                            <InputError
+                                message={errors.emergency_contact_phone}
+                                className="mt-2"
+                            />
+                        </div>
+                        <div>
+                            <label className="label" htmlFor="learning_needs">
+                                Learning needs
+                            </label>
+                            <textarea
+                                id="learning_needs"
+                                value={data.learning_needs}
+                                onChange={(e) =>
+                                    setData('learning_needs', e.target.value)
+                                }
+                                className="input mt-1 min-h-24"
+                                placeholder="Exam goals, reading level, support needs"
+                            />
+                            <InputError
+                                message={errors.learning_needs}
+                                className="mt-2"
+                            />
+                        </div>
+                        <div>
+                            <label className="label" htmlFor="medical_notes">
+                                Medical notes
+                            </label>
+                            <textarea
+                                id="medical_notes"
+                                value={data.medical_notes}
+                                onChange={(e) =>
+                                    setData('medical_notes', e.target.value)
+                                }
+                                className="input mt-1 min-h-24"
+                                placeholder="Allergies or important notes"
+                            />
+                            <InputError
+                                message={errors.medical_notes}
+                                className="mt-2"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex justify-end">
+                    <button
+                        type="submit"
+                        disabled={
+                            processing || !data.name || !data.class_year_id
+                        }
+                        className="btn-primary"
+                    >
+                        {processing ? 'Adding...' : 'Add student'}
+                    </button>
+                </div>
             </div>
         </form>
     );
@@ -196,6 +456,9 @@ export default function Dashboard({ children, hasSubscriptionPlans, classYears }
                                                 </h3>
                                                 <p className="text-sm text-slate-500">
                                                     {child.student_code}
+                                                    {child.preferred_name
+                                                        ? ` · known as ${child.preferred_name}`
+                                                        : ''}
                                                     {child.school
                                                         ? ` · ${child.school}`
                                                         : ''}
@@ -235,6 +498,49 @@ export default function Dashboard({ children, hasSubscriptionPlans, classYears }
 
                                     <div className="grid gap-6 p-5 lg:grid-cols-[1fr_1fr] sm:p-6">
                                         <div>
+                                            <div className="mb-5 rounded-lg border border-slate-200 bg-white p-4">
+                                                <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                                    Profile information
+                                                </p>
+                                                <div className="grid gap-3 text-sm text-slate-600 sm:grid-cols-2">
+                                                    <p>
+                                                        <span className="font-medium text-slate-800">
+                                                            Location:
+                                                        </span>{' '}
+                                                        {[child.city, child.postcode, child.country]
+                                                            .filter(Boolean)
+                                                            .join(', ') ||
+                                                            'Not added'}
+                                                    </p>
+                                                    <p>
+                                                        <span className="font-medium text-slate-800">
+                                                            Emergency:
+                                                        </span>{' '}
+                                                        {[
+                                                            child.emergency_contact_name,
+                                                            child.emergency_contact_phone,
+                                                        ]
+                                                            .filter(Boolean)
+                                                            .join(' · ') ||
+                                                            'Not added'}
+                                                    </p>
+                                                    <p className="sm:col-span-2">
+                                                        <span className="font-medium text-slate-800">
+                                                            Learning:
+                                                        </span>{' '}
+                                                        {child.learning_needs ||
+                                                            'No notes'}
+                                                    </p>
+                                                    <p className="sm:col-span-2">
+                                                        <span className="font-medium text-slate-800">
+                                                            Medical:
+                                                        </span>{' '}
+                                                        {child.medical_notes ||
+                                                            'No notes'}
+                                                    </p>
+                                                </div>
+                                            </div>
+
                                             <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
                                                 Subscriptions
                                             </p>

@@ -13,7 +13,10 @@ class Student extends Model
     use HasFactory;
 
     protected $fillable = [
-        'parent_id', 'student_code', 'name', 'dob', 'school', 'gender', 'is_active',
+        'parent_id', 'student_code', 'name', 'preferred_name', 'dob', 'school',
+        'gender', 'address_line1', 'address_line2', 'city', 'postcode',
+        'country', 'emergency_contact_name', 'emergency_contact_phone',
+        'learning_needs', 'medical_notes', 'is_active',
     ];
 
     protected $casts = [

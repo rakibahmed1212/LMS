@@ -124,10 +124,27 @@ class DemoUsersSeeder extends Seeder
     {
         $student = Student::firstOrCreate(
             ['parent_id' => $parent->id, 'name' => $name],
-            ['school' => $school, 'dob' => now()->subYears($age), 'gender' => $gender],
+            [
+                'school' => $school,
+                'dob' => now()->subYears($age),
+                'gender' => $gender,
+            ],
         );
 
-        $student->update(['school' => $school, 'gender' => $gender, 'is_active' => true]);
+        $student->update([
+            'preferred_name' => str($name)->before(' ')->toString(),
+            'school' => $school,
+            'gender' => $gender,
+            'address_line1' => '12 Demo Street',
+            'city' => 'London',
+            'postcode' => 'E1 6AN',
+            'country' => 'United Kingdom',
+            'emergency_contact_name' => $parent->name,
+            'emergency_contact_phone' => $parent->phone,
+            'learning_needs' => $age <= 8 ? 'Benefits from shorter lessons and visual examples.' : 'Preparing for stronger independent practice.',
+            'medical_notes' => 'No medical notes recorded.',
+            'is_active' => true,
+        ]);
 
         $classYearId = ClassYear::where('slug', $yearSlug)->value('id');
         $student->enrollments()->updateOrCreate(
