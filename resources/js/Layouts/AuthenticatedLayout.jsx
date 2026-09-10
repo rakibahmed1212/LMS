@@ -35,6 +35,11 @@ export default function AuthenticatedLayout({ header, children }) {
             active: route().current('plans.index'),
             label: 'Plans',
         });
+        links.push({
+            href: route('notifications.index'),
+            active: route().current('notifications.*'),
+            label: 'Notifications',
+        });
     }
     if (isAdmin) {
         links.push({
@@ -48,9 +53,24 @@ export default function AuthenticatedLayout({ header, children }) {
             label: 'Students',
         });
         links.push({
+            href: route('admin.content.index'),
+            active: route().current('admin.content.*'),
+            label: 'Content',
+        });
+        links.push({
             href: route('admin.users.index'),
             active: route().current('admin.users.*'),
             label: 'Users',
+        });
+        links.push({
+            href: route('admin.audit-logs.index'),
+            active: route().current('admin.audit-logs.*'),
+            label: 'Audit',
+        });
+        links.push({
+            href: route('admin.platform.index'),
+            active: route().current('admin.platform.*'),
+            label: 'Platform',
         });
     }
 

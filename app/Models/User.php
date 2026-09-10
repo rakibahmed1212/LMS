@@ -80,6 +80,11 @@ class User extends Authenticatable
         return $this->hasMany(Student::class, 'parent_id');
     }
 
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(Notification::class);
+    }
+
     /** Tutor profile: courses assigned to this staff member. */
     public function tutorAssignments(): HasMany
     {

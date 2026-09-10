@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AuditLog;
 use App\Models\Coupon;
 use App\Models\Student;
 use App\Models\SubscriptionPlan;
+use App\Services\NotificationService;
 use App\Services\SubscriptionService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -43,7 +45,7 @@ class SubscribeController extends Controller
         ]);
     }
 
-    public function store(Request $request, Student $student, SubscriptionService $service)
+    public function store(Request $request, Student $student, SubscriptionService $service, NotificationService $notifications)
     {
         $this->authorizeParent($request, $student);
 
@@ -66,6 +68,27 @@ class SubscribeController extends Controller
         // v1 simulates a successful charge via markPaid().
         $subscription = $service->subscribe($student, $plan, $coupon);
         $service->markPaid($subscription, 'v1-simulated-tx');
+        $payment = $subscription->payments()->latest('id')->first();
+
+        AuditLog::record('subscription.created', $subscription, [
+            'new' => [
+                'student' => $student->student_code,
+                'plan' => $plan->name,
+                'status' => $subscription->status,
+            ],
+        ], $request->user());
+
+        $notifications->notify(
+            $request->user(),
+            'subscription_confirmation',
+            'Subscription activated',
+            $plan->name.' is active for '.$student->name.'.',
+            [
+                'student_id' => $student->id,
+                'subscription_id' => $subscription->id,
+                'receipt_url' => $payment ? route('payments.receipt', $payment) : null,
+            ],
+        );
 
         return redirect()
             ->route('parent.dashboard')

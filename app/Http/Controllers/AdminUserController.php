@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AuditLog;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -82,8 +83,21 @@ class AdminUserController extends Controller
         abort_if($removesOwnAdminRole, 422, 'You cannot remove your own Super Admin role.');
         abort_if($request->user()->is($user) && $validated['is_active'] === false, 422, 'You cannot deactivate your own account.');
 
+        $old = [
+            'roles' => $user->roles()->pluck('name')->values(),
+            'is_active' => $user->is_active,
+        ];
+
         $user->roles()->sync($selectedRoles->pluck('id'));
         $user->forceFill(['is_active' => $validated['is_active']])->save();
+
+        AuditLog::record('user.updated', $user, [
+            'old' => $old,
+            'new' => [
+                'roles' => $selectedRoles->pluck('name')->values(),
+                'is_active' => $user->is_active,
+            ],
+        ], $request->user());
 
         return back()->with('success', $user->name.' has been updated.');
     }
@@ -118,6 +132,14 @@ class AdminUserController extends Controller
         ]);
 
         $user->roles()->sync($roles->pluck('id'));
+
+        AuditLog::record('user.created', $user, [
+            'new' => [
+                'email' => $user->email,
+                'roles' => $roles->pluck('name')->values(),
+                'is_active' => $user->is_active,
+            ],
+        ], $request->user());
 
         return redirect()
             ->route('admin.users.index')

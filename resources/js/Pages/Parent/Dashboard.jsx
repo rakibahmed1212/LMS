@@ -6,29 +6,54 @@ import { Head, Link, useForm, usePage } from '@inertiajs/react';
 
 function SubscriptionRow({ sub }) {
     return (
-        <li className="flex flex-col gap-2 rounded-xl border border-slate-200 bg-slate-50/50 p-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-                <p className="text-sm font-semibold text-slate-900">
-                    {sub.plan}
-                </p>
-                <p className="text-xs text-slate-500">
-                    {sub.billing_cycle} · £{sub.price} ·{' '}
-                    <span className="capitalize">
-                        {sub.billing_cycle === 'monthly' ? 'per month' : 'per year'}
-                    </span>
-                    {sub.expires_at
-                        ? ` · renews ${sub.expires_at}`
-                        : ''}
-                </p>
+        <li className="rounded-lg border border-slate-200 bg-slate-50/50 p-3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <p className="text-sm font-semibold text-slate-900">
+                        {sub.plan}
+                    </p>
+                    <p className="text-xs text-slate-500">
+                        {sub.billing_cycle} · £{sub.price} ·{' '}
+                        <span className="capitalize">
+                            {sub.billing_cycle === 'monthly'
+                                ? 'per month'
+                                : 'per year'}
+                        </span>
+                        {sub.expires_at ? ` · renews ${sub.expires_at}` : ''}
+                    </p>
+                </div>
+                <div className="flex items-center gap-2">
+                    {sub.renewal_due && (
+                        <span className="badge bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200">
+                            renewal due
+                        </span>
+                    )}
+                    <Badge status={sub.status} />
+                </div>
             </div>
-            <div className="flex items-center gap-2">
-                {sub.renewal_due && (
-                    <span className="badge bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200">
-                        renewal due
-                    </span>
-                )}
-                <Badge status={sub.status} />
-            </div>
+            {sub.payments.length > 0 && (
+                <div className="mt-3 border-t border-slate-200 pt-3">
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                        Payment history
+                    </p>
+                    <div className="space-y-2">
+                        {sub.payments.map((payment) => (
+                            <a
+                                key={payment.invoice_no}
+                                href={payment.receipt_url}
+                                className="flex items-center justify-between gap-3 rounded-lg bg-white px-3 py-2 text-xs text-slate-600 hover:text-cyan-700"
+                            >
+                                <span className="font-mono">
+                                    {payment.invoice_no}
+                                </span>
+                                <span>
+                                    £{payment.total} · {payment.status}
+                                </span>
+                            </a>
+                        ))}
+                    </div>
+                </div>
+            )}
         </li>
     );
 }

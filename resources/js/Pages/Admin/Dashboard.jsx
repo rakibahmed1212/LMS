@@ -110,6 +110,9 @@ export default function Dashboard({
                         <Link href={route('admin.students.index')} className="btn-secondary">
                             View students
                         </Link>
+                        <Link href={route('admin.content.index')} className="btn-secondary">
+                            Manage content
+                        </Link>
                         <Link href={route('admin.users.index')} className="btn-secondary">
                             Manage users
                         </Link>

@@ -38,12 +38,16 @@ return new class extends Migration
         });
 
         Schema::create('notifications', function (Blueprint $table) {
-            $table->uuid('id')->primary();
+            $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->string('type');
-            $table->text('data');
+            $table->string('type', 80)->index();
+            $table->string('title');
+            $table->text('body')->nullable();
+            $table->string('channel', 30)->default('in_app');
+            $table->json('data')->nullable();
             $table->timestamp('read_at')->nullable();
             $table->timestamps();
+            $table->index(['user_id', 'read_at']);
         });
     }
 

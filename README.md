@@ -21,12 +21,17 @@
 | Admin dashboard analytics | Built |
 | Admin user creation + role management | Built |
 | Admin student registry/search/subscription snapshot | Built |
+| Admin content management + lesson creation | Built |
+| Audit log viewer | Built |
+| Payment receipt/invoice view | Built |
+| In-app notification center | Built |
+| Platform readiness dashboard | Built |
 | Certificate issue + verification URL | Built |
 | PWA manifest/service worker | Built |
-| Recurring payment gateway | External integration needed |
-| Secure video streaming/signed playback | External integration needed |
-| Email/SMS/push notification delivery | External integration needed |
-| Production backups/hosting/HTTPS | Deployment setup needed |
+| Recurring payment gateway | Module ready; live provider credentials required |
+| Secure video streaming/signed playback | Module ready; live streaming credentials required |
+| Email/SMS/push notification delivery | In-app ready; external channels need credentials |
+| Production backups/hosting/HTTPS | Readiness tracked; deployment/server setup required |
 
 **Demo note:** seed data includes parents, students, courses, lessons, subscriptions, payments, gradebook, live classes and certificates, so the product can be demonstrated as a working LMS flow instead of only static screens.
 

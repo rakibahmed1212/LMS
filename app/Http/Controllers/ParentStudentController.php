@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AcademicSession;
+use App\Models\AuditLog;
 use App\Models\ClassYear;
 use App\Models\Student;
 use Illuminate\Http\Request;
@@ -58,6 +59,14 @@ class ParentStudentController extends Controller
                 ->latest('starts_at')
                 ->value('id'),
         ]);
+
+        AuditLog::record('student.created', $student, [
+            'new' => [
+                'student_code' => $student->student_code,
+                'name' => $student->name,
+                'class_year' => $classYear->name,
+            ],
+        ], $request->user());
 
         return redirect()
             ->route('parent.dashboard')

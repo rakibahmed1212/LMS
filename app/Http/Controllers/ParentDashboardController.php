@@ -72,6 +72,7 @@ class ParentDashboardController extends Controller
                                 'status' => $payment->status,
                                 'total' => (float) $payment->total,
                                 'paid_at' => $payment->paid_at?->toDateString(),
+                                'receipt_url' => route('payments.receipt', $payment),
                             ]),
                         ];
                     }),

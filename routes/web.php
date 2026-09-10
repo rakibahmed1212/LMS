@@ -1,13 +1,18 @@
 <?php
 
+use App\Http\Controllers\AdminAuditLogController;
+use App\Http\Controllers\AdminContentController;
 use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\AdminPlatformController;
 use App\Http\Controllers\AdminStudentController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\CertificateVerificationController;
 use App\Http\Controllers\CoursePortalController;
 use App\Http\Controllers\LessonPortalController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ParentDashboardController;
 use App\Http\Controllers\ParentStudentController;
+use App\Http\Controllers\PaymentReceiptController;
 use App\Http\Controllers\PlanController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicPageController;
@@ -61,6 +66,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('parent.students.store');
 
     Route::get('/plans', [PlanController::class, 'index'])->name('plans.index');
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
+    Route::get('/payments/{payment}/receipt', [PaymentReceiptController::class, 'show'])->name('payments.receipt');
 
     Route::get('/students/{student}/subscribe', [SubscribeController::class, 'show'])
         ->name('subscriptions.show');
@@ -89,6 +97,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/admin/students', [AdminStudentController::class, 'index'])
         ->middleware('can:manage subscriptions')
         ->name('admin.students.index');
+    Route::get('/admin/content', [AdminContentController::class, 'index'])
+        ->middleware('can:manage content')
+        ->name('admin.content.index');
+    Route::post('/admin/content/lessons', [AdminContentController::class, 'storeLesson'])
+        ->middleware('can:create lesson')
+        ->name('admin.content.lessons.store');
+    Route::get('/admin/audit-logs', [AdminAuditLogController::class, 'index'])
+        ->middleware('can:view audit logs')
+        ->name('admin.audit-logs.index');
+    Route::get('/admin/platform', [AdminPlatformController::class, 'index'])
+        ->middleware('can:view audit logs')
+        ->name('admin.platform.index');
 });
 
 Route::middleware('auth')->group(function () {
