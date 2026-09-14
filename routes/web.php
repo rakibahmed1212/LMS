@@ -100,9 +100,78 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/admin/content', [AdminContentController::class, 'index'])
         ->middleware('can:manage content')
         ->name('admin.content.index');
+    Route::post('/admin/content/class-years', [AdminContentController::class, 'storeClassYear'])
+        ->middleware('can:manage content')
+        ->name('admin.content.class-years.store');
+    Route::patch('/admin/content/class-years/{classYear}', [AdminContentController::class, 'updateClassYear'])
+        ->middleware('can:manage content')
+        ->name('admin.content.class-years.update');
+    Route::delete('/admin/content/class-years/{classYear}', [AdminContentController::class, 'destroyClassYear'])
+        ->middleware('can:manage content')
+        ->name('admin.content.class-years.destroy');
+    Route::post('/admin/content/subjects', [AdminContentController::class, 'storeSubject'])
+        ->middleware('can:manage content')
+        ->name('admin.content.subjects.store');
+    Route::patch('/admin/content/subjects/{subject}', [AdminContentController::class, 'updateSubject'])
+        ->middleware('can:manage content')
+        ->name('admin.content.subjects.update');
+    Route::delete('/admin/content/subjects/{subject}', [AdminContentController::class, 'destroySubject'])
+        ->middleware('can:manage content')
+        ->name('admin.content.subjects.destroy');
+    Route::post('/admin/content/courses', [AdminContentController::class, 'storeCourse'])
+        ->middleware('can:manage content')
+        ->name('admin.content.courses.store');
+    Route::patch('/admin/content/courses/{course}', [AdminContentController::class, 'updateCourse'])
+        ->middleware('can:manage content')
+        ->name('admin.content.courses.update');
+    Route::delete('/admin/content/courses/{course}', [AdminContentController::class, 'destroyCourse'])
+        ->middleware('can:manage content')
+        ->name('admin.content.courses.destroy');
+    Route::post('/admin/content/modules', [AdminContentController::class, 'storeModule'])
+        ->middleware('can:manage content')
+        ->name('admin.content.modules.store');
+    Route::patch('/admin/content/modules/{module}', [AdminContentController::class, 'updateModule'])
+        ->middleware('can:manage content')
+        ->name('admin.content.modules.update');
+    Route::delete('/admin/content/modules/{module}', [AdminContentController::class, 'destroyModule'])
+        ->middleware('can:manage content')
+        ->name('admin.content.modules.destroy');
     Route::post('/admin/content/lessons', [AdminContentController::class, 'storeLesson'])
         ->middleware('can:create lesson')
         ->name('admin.content.lessons.store');
+    Route::patch('/admin/content/lessons/{lesson}', [AdminContentController::class, 'updateLesson'])
+        ->middleware('can:manage content')
+        ->name('admin.content.lessons.update');
+    Route::delete('/admin/content/lessons/{lesson}', [AdminContentController::class, 'destroyLesson'])
+        ->middleware('can:manage content')
+        ->name('admin.content.lessons.destroy');
+    Route::post('/admin/content/worksheets', [AdminContentController::class, 'storeWorksheet'])
+        ->middleware('can:manage content')
+        ->name('admin.content.worksheets.store');
+    Route::patch('/admin/content/worksheets/{worksheet}', [AdminContentController::class, 'updateWorksheet'])
+        ->middleware('can:manage content')
+        ->name('admin.content.worksheets.update');
+    Route::delete('/admin/content/worksheets/{worksheet}', [AdminContentController::class, 'destroyWorksheet'])
+        ->middleware('can:manage content')
+        ->name('admin.content.worksheets.destroy');
+    Route::post('/admin/content/quizzes', [AdminContentController::class, 'storeQuiz'])
+        ->middleware('can:manage content')
+        ->name('admin.content.quizzes.store');
+    Route::patch('/admin/content/quizzes/{quiz}', [AdminContentController::class, 'updateQuiz'])
+        ->middleware('can:manage content')
+        ->name('admin.content.quizzes.update');
+    Route::delete('/admin/content/quizzes/{quiz}', [AdminContentController::class, 'destroyQuiz'])
+        ->middleware('can:manage content')
+        ->name('admin.content.quizzes.destroy');
+    Route::post('/admin/content/questions', [AdminContentController::class, 'storeQuestion'])
+        ->middleware('can:manage content')
+        ->name('admin.content.questions.store');
+    Route::patch('/admin/content/questions/{question}', [AdminContentController::class, 'updateQuestion'])
+        ->middleware('can:manage content')
+        ->name('admin.content.questions.update');
+    Route::delete('/admin/content/questions/{question}', [AdminContentController::class, 'destroyQuestion'])
+        ->middleware('can:manage content')
+        ->name('admin.content.questions.destroy');
     Route::get('/admin/audit-logs', [AdminAuditLogController::class, 'index'])
         ->middleware('can:view audit logs')
         ->name('admin.audit-logs.index');
